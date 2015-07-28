@@ -3,4 +3,7 @@
 [![Crates.io](https://img.shields.io/crates/v/rust-sctp.svg)](https://crates.io/crates/rust-sctp)
 
 # rust-sctp
+
+[Documentation](http://phsym.github.io/rust-sctp)
+
 SCTP networking library for Rust

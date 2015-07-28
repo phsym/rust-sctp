@@ -4,6 +4,7 @@ name = "rust-sctp"
 version = "0.0.1"
 description = "High level SCTP networking library"
 repository = "https://github.com/phsym/rust-sctp"
+documentation = "http://phsym.github.io/rust-sctp"
 readme = "README.md"
 authors = [ "Pierre-Henri Symoneaux" ]
 keywords = ["transport", "network", "sctp", "libsctp", "socket"]
