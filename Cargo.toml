@@ -15,7 +15,3 @@ libc = "*"
 
 [lib]
 name = "sctp"
-
-[[bin]]
-
-name = "sctp"
