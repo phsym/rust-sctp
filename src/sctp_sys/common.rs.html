@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="Source to the Rust file `/home/phsym/.cargo/registry/src/github.com-1ecc6299db9ec823/sctp-sys-0.0.3/src/common.rs`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang">
+
+    <title>common.rs.html -- source</title>
+
+    <link rel="stylesheet" type="text/css" href="../../main.css">
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <section class="sidebar">
+        
+        
+    </section>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press 'S' to search, '?' for more options..."
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content source"><pre class="line-numbers"><span id="1"> 1</span>
+<span id="2"> 2</span>
+<span id="3"> 3</span>
+<span id="4"> 4</span>
+<span id="5"> 5</span>
+<span id="6"> 6</span>
+<span id="7"> 7</span>
+<span id="8"> 8</span>
+<span id="9"> 9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+</pre><pre class='rust '>
+<span class='kw'>use</span> <span class='ident'>libc</span>::{<span class='ident'>c_int</span>, <span class='ident'>c_uint</span>};
+
+<span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>IPPROTO_SCTP</span>: <span class='ident'>c_int</span> <span class='op'>=</span> <span class='number'>132</span>;
+<span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>SOCK_SEQPACKET</span>: <span class='ident'>c_int</span> <span class='op'>=</span> <span class='number'>5</span>;
+
+<span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>SCTP_BINDX_ADD_ADDR</span>: <span class='ident'>c_int</span> <span class='op'>=</span> <span class='number'>0x01</span>;
+<span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>SCTP_BINDX_REM_ADDR</span>: <span class='ident'>c_int</span> <span class='op'>=</span> <span class='number'>0x02</span>;
+
+
+<span class='comment'>// Flags</span>
+<span class='doccomment'>/// Start a shutdown procedures</span>
+<span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>SCTP_EOF</span>: <span class='ident'>u16</span> <span class='op'>=</span>          <span class='number'>0x0100</span>;
+<span class='doccomment'>///Send an ABORT to peer</span>
+<span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>SCTP_ABORT</span>: <span class='ident'>u16</span> <span class='op'>=</span>        <span class='number'>0x0200</span>;
+<span class='doccomment'>/// Message is un-ordered</span>
+<span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>SCTP_UNORDERED</span>: <span class='ident'>u16</span> <span class='op'>=</span>    <span class='number'>0x0400</span>;
+<span class='doccomment'>/// Override the primary-address</span>
+<span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>SCTP_ADDR_OVER</span>: <span class='ident'>u16</span> <span class='op'>=</span>    <span class='number'>0x0800</span>;
+<span class='doccomment'>/// Send this on all associations for the endpoint</span>
+<span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>SCTP_SENDALL</span>: <span class='ident'>u16</span> <span class='op'>=</span>      <span class='number'>0x1000</span>;
+
+<span class='comment'>// The lower byte is an enumeration of PR-SCTP policies</span>
+<span class='doccomment'>/// Time based PR-SCTP</span>
+<span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>SCTP_PR_SCTP_TTL</span>: <span class='ident'>u16</span> <span class='op'>=</span>  <span class='number'>0x0001</span>;
+<span class='doccomment'>/// Buffer based PR-SCTP </span>
+<span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>SCTP_PR_SCTP_BUF</span>: <span class='ident'>u16</span> <span class='op'>=</span>  <span class='number'>0x0002</span>;
+<span class='doccomment'>/// Number of retransmissions based PR-SCTP</span>
+<span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>SCTP_PR_SCTP_RTX</span>: <span class='ident'>u16</span> <span class='op'>=</span>  <span class='number'>0x0003</span>;
+
+<span class='attribute'>#[<span class='ident'>allow</span>(<span class='ident'>non_camel_case_types</span>)]</span>
+<span class='kw'>pub</span> <span class='kw'>type</span> <span class='ident'>sctp_assoc_t</span> <span class='op'>=</span> <span class='ident'>c_uint</span>;
+
+<span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Debug</span>, <span class='ident'>Copy</span>, <span class='ident'>Clone</span>)]</span>
+<span class='attribute'>#[<span class='ident'>repr</span>(<span class='ident'>C</span>)]</span>
+<span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>sctp_sndrcvinfo</span> {
+	<span class='doccomment'>/// Stream sending to</span>
+    <span class='kw'>pub</span> <span class='ident'>sinfo_stream</span>: <span class='ident'>u16</span>,
+    <span class='doccomment'>/// Valid for recv only</span>
+    <span class='kw'>pub</span> <span class='ident'>sinfo_ssn</span>: <span class='ident'>u16</span>,
+    <span class='doccomment'>/// Flags to control sending</span>
+    <span class='kw'>pub</span> <span class='ident'>sinfo_flags</span>: <span class='ident'>u16</span>,
+    <span class='doccomment'>/// ppid field</span>
+    <span class='kw'>pub</span> <span class='ident'>sinfo_ppid</span>: <span class='ident'>u32</span>,
+    <span class='doccomment'>/// context field</span>
+    <span class='kw'>pub</span> <span class='ident'>sinfo_context</span>: <span class='ident'>u32</span>,
+    <span class='doccomment'>/// timetolive for PR-SCTP</span>
+    <span class='kw'>pub</span> <span class='ident'>sinfo_timetolive</span>: <span class='ident'>u32</span>,
+    <span class='doccomment'>/// valid for recv only</span>
+    <span class='kw'>pub</span> <span class='ident'>sinfo_tsn</span>: <span class='ident'>u32</span>,
+    <span class='doccomment'>/// valid for recv only</span>
+    <span class='kw'>pub</span> <span class='ident'>sinfo_cumtsn</span>: <span class='ident'>u32</span>,
+    <span class='doccomment'>/// The association id</span>
+    <span class='kw'>pub</span> <span class='ident'>sinfo_assoc_id</span>: <span class='ident'>sctp_assoc_t</span>
+}
+</pre>
+</section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <div id="help" class="hidden">
+        <div class="shortcuts">
+            <h1>Keyboard shortcuts</h1>
+            <dl>
+                <dt>?</dt>
+                <dd>Show this help dialog</dd>
+                <dt>S</dt>
+                <dd>Focus the search field</dd>
+                <dt>&larrb;</dt>
+                <dd>Move up in search results</dd>
+                <dt>&rarrb;</dt>
+                <dd>Move down in search results</dd>
+                <dt>&#9166;</dt>
+                <dd>Go to active search result</dd>
+            </dl>
+        </div>
+        <div class="infos">
+            <h1>Search tricks</h1>
+            <p>
+                Prefix searches with a type followed by a colon (e.g.
+                <code>fn:</code>) to restrict the search to a given type.
+            </p>
+            <p>
+                Accepted types are: <code>fn</code>, <code>mod</code>,
+                <code>struct</code>, <code>enum</code>,
+                <code>trait</code>, <code>typedef</code> (or
+                <code>tdef</code>).
+            </p>
+            <p>
+                Search functions by type signature (e.g.
+                <code>vec -> usize</code>)
+            </p>
+        </div>
+    </div>
+
+    
+
+    <script>
+        window.rootPath = "../../";
+        window.currentCrate = "sctp_sys";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../../jquery.js"></script>
+    <script src="../../main.js"></script>
+    
+    <script async src="../../search-index.js"></script>
+</body>
+</html>
