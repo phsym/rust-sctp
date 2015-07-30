@@ -3,8 +3,8 @@ use libc;
 use sctp_sys;
 
 use std::io::{Result, Error, ErrorKind, Read, Write};
-use std::net::{ToSocketAddrs, SocketAddr};
-use std::mem::{transmute, size_of};
+use std::net::{ToSocketAddrs, SocketAddr, Shutdown};
+use std::mem::{transmute, size_of, zeroed};
 
 #[cfg(target_os="linux")]
 use std::os::unix::io::{AsRawFd, RawFd, FromRawFd};
@@ -40,7 +40,7 @@ fn check_socket(sock: SOCKET) -> Result<SOCKET> {
 	return Ok(sock);
 }
 
-/// SCTP bind opeartion
+/// SCTP bind operation
 #[allow(dead_code)]
 pub enum BindOp {
 	/// Add bind addresses
@@ -182,7 +182,7 @@ impl SctpSocket {
 			for address in addresses {
 				let raw = try!(SocketAddr::from_addr(address));
 				let len = raw.addr_len();
-				std::ptr::copy(raw.as_ptr() as *mut u8, buf.offset(offset), len as usize);
+				std::ptr::copy_nonoverlapping(raw.as_ptr() as *mut u8, buf.offset(offset), len as usize);
 				offset += len as isize;
 			}
 
@@ -286,7 +286,7 @@ impl SctpSocket {
 		unsafe {
 			let addr_ptr: *mut libc::sockaddr = transmute(&mut addr);
 			let mut info: sctp_sys::sctp_sndrcvinfo = std::mem::zeroed();
-			return match sctp_sys::sctp_recvmsg(self.0, msg.as_mut_ptr() as *mut libc::c_void, len, addr_ptr, &mut addr_len, &mut info, &mut flags){
+			return match sctp_sys::sctp_recvmsg(self.0, msg.as_mut_ptr() as *mut libc::c_void, len, addr_ptr, &mut addr_len, &mut info, &mut flags) {
 				res if res > 0 => Ok((res as usize, info.sinfo_stream, try!(SocketAddr::from_raw_ptr(addr_ptr, addr_len)))),
 				_ => Err(Error::last_os_error())
 			};
@@ -311,6 +311,42 @@ impl SctpSocket {
 			};
 		}
 	}
+	
+	/// Shuts down the read, write, or both halves of this connection
+	pub fn shutdown(&self, how: Shutdown) -> Result<()> {
+		let side = match how {
+			Shutdown::Read => libc::SHUT_RD,
+			Shutdown::Write => libc::SHUT_WR,
+			Shutdown::Both => libc::SHUT_RDWR
+		};
+		return match unsafe { libc::shutdown(self.0, side) } {
+			0 => Ok(()),
+			_ => Err(Error::last_os_error())
+		};
+	}
+	
+	/// Set SCTP socket option
+	pub fn setsockopt<T>(&self, optname: libc::c_int, optval: &T) -> Result<()> {
+		unsafe {
+			return match libc::setsockopt(self.0, sctp_sys::SOL_SCTP, optname, transmute(optval), size_of::<T>() as libc::socklen_t) {
+				0 => Ok(()),
+				_ => Err(Error::last_os_error())
+			};
+		}
+	}
+	
+	/// Get SCTP socket option
+	pub fn getsockopt<T>(&self, optname: libc::c_int, assoc: sctp_sys::sctp_assoc_t) -> Result<T> {
+		unsafe {
+			let mut val: T = zeroed();
+			let mut len = size_of::<T>() as libc::socklen_t;
+			return match sctp_sys::sctp_opt_info(self.0, assoc, optname, transmute(&mut val), &mut len) {
+				0 => Ok(val),
+				_ => Err(Error::last_os_error())
+			};
+		}
+	}
+	
 	
 	/// Try to clone this socket
 	pub fn try_clone(&self) -> Result<SctpSocket> {

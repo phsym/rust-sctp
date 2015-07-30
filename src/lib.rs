@@ -7,7 +7,7 @@ use sctp_sys::SOCK_SEQPACKET;
 
 use std::io::prelude::*;
 use std::io::{Result, Error, ErrorKind};
-use std::net::{ToSocketAddrs, SocketAddr};
+use std::net::{ToSocketAddrs, SocketAddr, Shutdown};
 
 #[cfg(target_os="linux")]
 use std::os::unix::io::{AsRawFd, RawFd, FromRawFd};
@@ -51,6 +51,17 @@ impl SctpStream {
 	/// Return the list of socket addresses for the peer this stream is connected to
 	pub fn peer_addrs(&self) -> Result<Vec<SocketAddr>> {
 		return self.0.peer_addrs(0);
+	}
+	
+	/// Shuts down the read, write, or both halves of this connection
+	pub fn shutdown(&self, how: Shutdown) -> Result<()> {
+		return self.0.shutdown(how);
+	}
+	
+	/// Set or unset SCTP NO DELAY option
+	pub fn set_nodelay(&self, nodelay: bool) -> Result<()> {
+		let val: libc::c_int = if nodelay { 1 } else { 0 };
+		return self.0.setsockopt(sctp_sys::SCTP_NODELAY, &val);
 	}
 	
 	/// Try to clone the SctpStream. On success, returns a new stream
