@@ -3,7 +3,7 @@ extern crate libc;
 
 mod sctpsock;
 use sctpsock::{SctpSocket, BindOp, RawSocketAddr};
-use sctp_sys::SOCK_SEQPACKET;
+use sctp_sys::{SOCK_SEQPACKET, SOL_SCTP};
 
 use std::io::prelude::*;
 use std::io::{Result, Error, ErrorKind};
@@ -14,6 +14,20 @@ use std::os::unix::io::{AsRawFd, RawFd, FromRawFd};
 #[cfg(target_os="windows")]
 use std::os::windows::io::{AsRawHandle, RawHandle, FromRawHandle};
 
+
+pub enum SoBuffer {
+	Receive,
+	Send
+}
+
+impl SoBuffer {
+	fn optname(&self) -> libc::c_int {
+		return match *self {
+			SoBuffer::Receive => libc::SO_RCVBUF,
+			SoBuffer::Send => libc::SO_SNDBUF
+		};
+	}
+}
 
 /// One-to-one SCTP connected stream which behaves like a TCP stream.
 /// A `SctpStream` can be obtained either actively by connecting to a SCTP endpoint with the
@@ -27,6 +41,22 @@ impl SctpStream {
 		let raw_addr = try!(SocketAddr::from_addr(&address));
 		let sock = try!(SctpSocket::new(raw_addr.family(), libc::SOCK_STREAM));
 		try!(sock.connect(raw_addr));
+		return Ok(SctpStream(sock));
+	}
+	
+	/// Create a new stream by connecting it to a remote endpoint
+	pub fn connectx<A: ToSocketAddrs>(addresses: &[A]) -> Result<SctpStream> {
+		if addresses.len() == 0 { return Err(Error::new(ErrorKind::InvalidInput, "No addresses given")); }
+		let mut vec = Vec::with_capacity(addresses.len());
+		let mut family = libc::AF_INET;
+		for address in addresses {
+			let a = try!(SocketAddr::from_addr(address));
+			if a.family() == libc::AF_INET6 { family = libc::AF_INET6; }
+			vec.push(a);
+		}
+
+		let sock = try!(SctpSocket::new(family, libc::SOCK_STREAM));
+		try!(sock.connectx(&vec));
 		return Ok(SctpStream(sock));
 	}
 	
@@ -58,10 +88,28 @@ impl SctpStream {
 		return self.0.shutdown(how);
 	}
 	
-	/// Set or unset SCTP NO DELAY option
+	/// Set or unset SCTP_NODELAY option
 	pub fn set_nodelay(&self, nodelay: bool) -> Result<()> {
 		let val: libc::c_int = if nodelay { 1 } else { 0 };
-		return self.0.setsockopt(sctp_sys::SCTP_NODELAY, &val);
+		return self.0.setsockopt(SOL_SCTP, sctp_sys::SCTP_NODELAY, &val);
+	}
+	
+	/// Verify if SCTP_NODELAY option is activated for this socket
+	pub fn has_nodelay(&self) -> Result<bool> {
+		let val: libc::c_int = try!(self.0.sctp_opt_info(sctp_sys::SCTP_NODELAY, 0));
+		return Ok(val == 1);
+	}
+	
+	/// Set the socket buffer size for the buffer specifid by `buf`.
+	/// Linux system will double the provided size
+	pub fn set_buffer_size(&self, buf: SoBuffer, size: usize) -> Result<()> {
+		return self.0.setsockopt(libc::SOL_SOCKET, buf.optname(), &(size as libc::c_int));
+	}
+	
+	/// Get the socket buffer size for the buffer specifid by `buf`
+	pub fn get_buffer_size(&self, buf: SoBuffer) -> Result<(usize)> {
+		let val: u32 = try!(self.0.getsockopt(libc::SOL_SOCKET, buf.optname()));
+		return Ok(val as usize);
 	}
 	
 	/// Try to clone the SctpStream. On success, returns a new stream

@@ -40,6 +40,14 @@ fn check_socket(sock: SOCKET) -> Result<SOCKET> {
 	return Ok(sock);
 }
 
+// XXX: Until getsockopt is available in libc crate
+extern "system" {
+	#[cfg(target_os="linux")]
+	fn getsockopt(sock: SOCKET, level: libc::c_int, optname: libc::c_int, optval: *mut libc::c_void, optlen: *mut libc::socklen_t) -> libc::c_int;
+	#[cfg(target_os="windows")]
+	fn getsockopt(sock: SOCKET, level: libc::c_int, optname: libc::c_int, optval: *mut libc::c_char, optlen: *mut libc::c_int) -> libc::c_int;
+}
+
 /// SCTP bind operation
 #[allow(dead_code)]
 pub enum BindOp {
@@ -167,6 +175,33 @@ impl SctpSocket {
 				0 => Ok(()),
 				_ => Err(Error::last_os_error())
 			};
+		}
+	}
+	
+	/// Connect the socket to multiple addresses
+	pub fn connectx<A: ToSocketAddrs>(&self, addresses: &[A]) -> Result<sctp_sys::sctp_assoc_t> {
+		if addresses.len() == 0 { return Err(Error::new(ErrorKind::InvalidInput, "No addresses given")); }
+		unsafe {
+			let buf: *mut u8 = libc::malloc((addresses.len() * size_of::<libc::sockaddr_in6>()) as u64) as *mut u8;
+			if buf.is_null() {
+				return Err(Error::new(ErrorKind::Other, "Out of memory"));
+			}
+			let mut offset = 0isize;
+			for address in addresses {
+				let raw = try!(SocketAddr::from_addr(address));
+				let len = raw.addr_len();
+				std::ptr::copy_nonoverlapping(raw.as_ptr() as *mut u8, buf.offset(offset), len as usize);
+				offset += len as isize;
+			}
+			
+			let mut assoc: sctp_sys::sctp_assoc_t = 0;
+			if sctp_sys::sctp_connectx(self.0, buf as *mut libc::sockaddr, addresses.len() as i32, &mut assoc) != 0 {
+				let err = Error::last_os_error();
+				libc::free(buf as *mut libc::c_void);
+				return Err(err);
+			}
+			libc::free(buf as *mut libc::c_void);
+			return Ok(assoc);
 		}
 	}
 	
@@ -325,18 +360,30 @@ impl SctpSocket {
 		};
 	}
 	
-	/// Set SCTP socket option
-	pub fn setsockopt<T>(&self, optname: libc::c_int, optval: &T) -> Result<()> {
+	/// Set socket option
+	pub fn setsockopt<T>(&self, level: libc::c_int, optname: libc::c_int, optval: &T) -> Result<()> {
 		unsafe {
-			return match libc::setsockopt(self.0, sctp_sys::SOL_SCTP, optname, transmute(optval), size_of::<T>() as libc::socklen_t) {
+			return match libc::setsockopt(self.0, level, optname, transmute(optval), size_of::<T>() as libc::socklen_t) {
 				0 => Ok(()),
 				_ => Err(Error::last_os_error())
 			};
 		}
 	}
 	
+	/// Get socket option
+	pub fn getsockopt<T>(&self, level: libc::c_int, optname: libc::c_int) -> Result<T> {
+		unsafe {
+			let mut val: T = zeroed();
+			let mut len = size_of::<T>() as libc::socklen_t;
+			return match getsockopt(self.0, level, optname, transmute(&mut val), &mut len) {
+				0 => Ok(val),
+				_ => Err(Error::last_os_error())
+			};
+		}
+	}
+	
 	/// Get SCTP socket option
-	pub fn getsockopt<T>(&self, optname: libc::c_int, assoc: sctp_sys::sctp_assoc_t) -> Result<T> {
+	pub fn sctp_opt_info<T>(&self, optname: libc::c_int, assoc: sctp_sys::sctp_assoc_t) -> Result<T> {
 		unsafe {
 			let mut val: T = zeroed();
 			let mut len = size_of::<T>() as libc::socklen_t;
@@ -346,7 +393,6 @@ impl SctpSocket {
 			};
 		}
 	}
-	
 	
 	/// Try to clone this socket
 	pub fn try_clone(&self) -> Result<SctpSocket> {

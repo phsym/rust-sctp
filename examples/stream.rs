@@ -9,7 +9,15 @@ fn main() {
     	Err(e) => println!("{:?}", e.kind()),
     	Ok(mut peer) => {
     		// Set SCTP no delay
+    		println!("{}", peer.has_nodelay().unwrap());
     		peer.set_nodelay(true).unwrap();
+    		println!("{}", peer.has_nodelay().unwrap());
+    		
+    		// Set socket send buffer size
+    		let oldsize = peer.get_buffer_size(SoBuffer::Send).unwrap();
+    		peer.set_buffer_size(SoBuffer::Send, 4096).unwrap();
+    		println!("Set send buffer size to {} (was : {})", peer.get_buffer_size(SoBuffer::Send).unwrap(), oldsize);
+    		
     		// Write a message using the io::Write trait
     		peer.write_all("foo bar\n".as_bytes()).unwrap();
     		// Write a message on stream 6
