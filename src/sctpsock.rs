@@ -351,7 +351,7 @@ impl SctpSocket {
 	/// Try to clone this socket
 	pub fn try_clone(&self) -> Result<SctpSocket> {
 		unsafe {
-			let new_sock = try!(check_socket(libc::dup(self.0 as i32)as SOCKET ));
+			let new_sock = try!(check_socket(libc::dup(self.0 as i32) as SOCKET));
 			return Ok(SctpSocket(new_sock));
 		}
 	}

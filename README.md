@@ -7,3 +7,8 @@
 [Documentation](http://phsym.github.io/rust-sctp)
 
 SCTP networking library for Rust
+
+# How to build
+
+`rust-sctp` relies on the [sctp-sys](https://crates.io/crates/sctp-sys) crate. Please have a look at [sctp-sys: How to build](https://github.com/phsym/sctp-sys#how-to-build).
+
