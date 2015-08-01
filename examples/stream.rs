@@ -5,7 +5,8 @@ use std::io::prelude::*;
 
 fn main() {
 	// Create a new one-to-one stream
-    match SctpStream::connect("127.0.0.1:3868") {
+//    match SctpStream::connect("127.0.0.1:3868") {
+	match SctpStream::connectx(&["10.0.2.15:3868", "127.0.0.1:3868"]) {
     	Err(e) => println!("{:?}", e.kind()),
     	Ok(mut peer) => {
     		// Set SCTP no delay

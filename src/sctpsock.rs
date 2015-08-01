@@ -47,6 +47,15 @@ extern "system" {
 	#[cfg(target_os="windows")]
 	fn getsockopt(sock: SOCKET, level: libc::c_int, optname: libc::c_int, optval: *mut libc::c_char, optlen: *mut libc::c_int) -> libc::c_int;
 }
+#[cfg(target_os="linux")]
+pub const SO_RCVTIMEO: libc::c_int = 20;
+#[cfg(target_os="linux")]
+pub const SO_SNDTIMEO: libc::c_int = 21;
+
+#[cfg(target_os="windows")]
+pub const SO_RCVTIMEO: libc::c_int = 0x1006;
+#[cfg(target_os="windows")]
+pub const SO_SNDTIMEO: libc::c_int = 0x1005;
 
 /// SCTP bind operation
 #[allow(dead_code)]
@@ -126,7 +135,7 @@ impl RawSocketAddr for SocketAddr {
 	
 	unsafe fn from_raw_ptr(addr: *const libc::sockaddr, len: libc::socklen_t) -> Result<SocketAddr> {
 		if len < size_of::<libc::sockaddr>() as libc::socklen_t {
-			panic!("Invalid address length");
+			return Err(Error::new(ErrorKind::InvalidInput, "Invalid address length"));
 		}
 		return match (*addr).sa_family as libc::c_int {
 			libc::AF_INET if len >= size_of::<libc::sockaddr_in>() as libc::socklen_t => Ok(SocketAddr::V4(transmute(*(addr as *const libc::sockaddr_in)))),
@@ -195,13 +204,23 @@ impl SctpSocket {
 			}
 			
 			let mut assoc: sctp_sys::sctp_assoc_t = 0;
-			if sctp_sys::sctp_connectx(self.0, buf as *mut libc::sockaddr, addresses.len() as i32, &mut assoc) != 0 {
-				let err = Error::last_os_error();
-				libc::free(buf as *mut libc::c_void);
-				return Err(err);
-			}
+			let ret = match sctp_sys::sctp_connectx(self.0, buf as *mut libc::sockaddr, addresses.len() as i32, &mut assoc) {
+				0 => Ok(assoc),
+				_ => Err(Error::last_os_error()),
+			};
 			libc::free(buf as *mut libc::c_void);
-			return Ok(assoc);
+			return ret;
+		}
+	}
+	
+	/// Bind the socket to a single address
+	pub fn bind<A: ToSocketAddrs>(&self, address: A) -> Result<()> {
+		let raw_addr = try!(SocketAddr::from_addr(&address));
+		unsafe {
+			return match libc::bind(self.0, raw_addr.as_ptr(), raw_addr.addr_len()) {
+				0 => Ok(()),
+				_ => Err(Error::last_os_error())
+			};
 		}
 	}
 	
@@ -221,13 +240,12 @@ impl SctpSocket {
 				offset += len as isize;
 			}
 
-			if sctp_sys::sctp_bindx(self.0, buf as *mut libc::sockaddr, addresses.len() as i32, op.flag()) != 0 {
-				let err = Error::last_os_error();
-				libc::free(buf as *mut libc::c_void);
-				return Err(err);
-			}
+			let ret = match sctp_sys::sctp_bindx(self.0, buf as *mut libc::sockaddr, addresses.len() as i32, op.flag()) {
+				0 => Ok(()),
+				_ => Err(Error::last_os_error())
+			};
 			libc::free(buf as *mut libc::c_void);
-			return Ok(());
+			return ret;
 		}
 	}
 	
@@ -261,14 +279,16 @@ impl SctpSocket {
 			if len == 0 { return Err(Error::new(ErrorKind::AddrNotAvailable, "Socket is unbound")); }
 			
 			let mut vec = Vec::with_capacity(len as usize);
-			
 			let mut offset = 0;
 			for _ in 0..len {
 				let sockaddr = addrs.offset(offset) as *const libc::sockaddr;
 				let len = match (*sockaddr).sa_family as i32 {
 					libc::AF_INET => size_of::<libc::sockaddr_in>(),
 					libc::AF_INET6 => size_of::<libc::sockaddr_in6>(),
-					f => panic!("Unsupported address family : {}", f)
+					f => {
+						what.free(addrs as *mut libc::sockaddr);
+						return Err(Error::new(ErrorKind::Other, format!("Unsupported address family : {}", f)));
+					}
 				} as libc::socklen_t;
 				vec.push(try!(SocketAddr::from_raw_ptr(sockaddr, len)));
 				offset += len as isize;

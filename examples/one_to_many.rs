@@ -3,8 +3,8 @@ use sctp::*;
 
 fn main() {
 	// Create a new Sctp endpoint, and bind it to one or more socket addresses
-//	let sock = match SctpDatagram::bind("0.0.0.0:3868") {
-	let sock = match SctpDatagram::bindx(&["10.0.2.15:3868", "127.0.0.1:3868"]) {
+//	let sock = match SctpEndpoint::bind("0.0.0.0:3868") {
+	let sock = match SctpEndpoint::bindx(&["10.0.2.15:3868", "127.0.0.1:3868"]) {
 		Ok(s) => s,
 		Err(e) => panic!("{:?}", e.kind())
 	};

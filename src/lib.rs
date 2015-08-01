@@ -1,3 +1,9 @@
+//! This crate provides high level SCTP networking.
+//! Currently it only supports basic SCTP features like multi-homing
+//! in one-to-one and one-to-many associations.
+//! SCTP notifications and working directly on associtaion is not supported yet
+//! but is in the TODO list.  
+
 extern crate sctp_sys;
 extern crate libc;
 
@@ -14,9 +20,11 @@ use std::os::unix::io::{AsRawFd, RawFd, FromRawFd};
 #[cfg(target_os="windows")]
 use std::os::windows::io::{AsRawHandle, RawHandle, FromRawHandle};
 
-
+/// Socket buffer type
 pub enum SoBuffer {
+	/// RCV buffer
 	Receive,
+	/// SND buffer
 	Send
 }
 
@@ -44,7 +52,7 @@ impl SctpStream {
 		return Ok(SctpStream(sock));
 	}
 	
-	/// Create a new stream by connecting it to a remote endpoint
+	/// Create a new stream by connecting it to a remote endpoint having multiple addresses
 	pub fn connectx<A: ToSocketAddrs>(addresses: &[A]) -> Result<SctpStream> {
 		if addresses.len() == 0 { return Err(Error::new(ErrorKind::InvalidInput, "No addresses given")); }
 		let mut vec = Vec::with_capacity(addresses.len());
@@ -164,18 +172,21 @@ impl FromRawFd for SctpStream {
 }
 
 
-/// One-to-many SCTP stream.
-pub struct SctpDatagram(SctpSocket);
+/// One-to-many SCTP endpoint.
+pub struct SctpEndpoint(SctpSocket);
 
-impl SctpDatagram {
+impl SctpEndpoint {
 	
-	/// Create a one-to-many SCTP socket bound to a single address
-	pub fn bind<A: ToSocketAddrs>(address: A) -> Result<SctpDatagram> {
-		return Self::bindx(&[address]);
+	/// Create a one-to-many SCTP endpoint bound to a single address
+	pub fn bind<A: ToSocketAddrs>(address: A) -> Result<SctpEndpoint> {
+		let raw_addr = try!(SocketAddr::from_addr(&address));
+		let sock = try!(SctpSocket::new(raw_addr.family(), libc::SOCK_STREAM));
+		try!(sock.bind(raw_addr));
+		return Ok(SctpEndpoint(sock));
 	}
 	
-	/// Create a one-to-many SCTP socket bound to a multiple addresses. Requires at least one address
-	pub fn bindx<A: ToSocketAddrs>(addresses: &[A]) -> Result<SctpDatagram> {
+	/// Create a one-to-many SCTP endpoint bound to a multiple addresses. Requires at least one address
+	pub fn bindx<A: ToSocketAddrs>(addresses: &[A]) -> Result<SctpEndpoint> {
 		if addresses.len() == 0 { return Err(Error::new(ErrorKind::InvalidInput, "No addresses given")); }
 		let mut vec = Vec::with_capacity(addresses.len());
 		let mut family = libc::AF_INET;
@@ -188,7 +199,7 @@ impl SctpDatagram {
 		let sock = try!(SctpSocket::new(family, SOCK_SEQPACKET));
 		try!(sock.bindx(&vec, BindOp::AddAddr));
 		try!(sock.listen(-1));
-		return Ok(SctpDatagram(sock));
+		return Ok(SctpEndpoint(sock));
 	}
 	
 	/// Wait for data to be received. On success, returns a triplet containing
@@ -200,7 +211,7 @@ impl SctpDatagram {
 	
 	/// Send data in Sctp style, to the provided address on the stream `stream`.
 	/// On success, returns the quantity on bytes sent
-	pub fn send_to<A: ToSocketAddrs>(&self, msg: &mut [u8], address: A, stream: u16, ) -> Result<usize> {
+	pub fn send_to<A: ToSocketAddrs>(&self, msg: &mut [u8], address: A, stream: u16) -> Result<usize> {
 		return self.0.sendmsg(msg, Some(address), stream, 0);
 	}
 	
@@ -210,36 +221,36 @@ impl SctpDatagram {
 	}
 	
 	/// Try to clone this socket
-	pub fn try_clone(&self) -> Result<SctpDatagram> {
-		return Ok(SctpDatagram(try!(self.0.try_clone())));
+	pub fn try_clone(&self) -> Result<SctpEndpoint> {
+		return Ok(SctpEndpoint(try!(self.0.try_clone())));
 	}
 }
 
 #[cfg(target_os="windows")]
-impl AsRawHandle for SctpDatagram {
+impl AsRawHandle for SctpEndpoint {
 	fn as_raw_handle(&self) -> RawHandle {
 		return return self.0.as_raw_handle();	
 	}
 }
 
 #[cfg(target_os="windows")]
-impl FromRawHandle for SctpDatagram {
-	unsafe fn from_raw_handle(hdl: RawHandle) -> SctpDatagram {
-		return SctpDatagram(SctpSocket::from_raw_handle(hdl));
+impl FromRawHandle for SctpEndpoint {
+	unsafe fn from_raw_handle(hdl: RawHandle) -> SctpEndpoint {
+		return SctpEndpoint(SctpSocket::from_raw_handle(hdl));
 	}
 }
 
 #[cfg(target_os="linux")]
-impl AsRawFd for SctpDatagram {
+impl AsRawFd for SctpEndpoint {
 	fn as_raw_fd(&self) -> RawFd {
 		return self.0.as_raw_fd();	
 	}
 }
 
 #[cfg(target_os="linux")]
-impl FromRawFd for SctpDatagram {
-	unsafe fn from_raw_fd(fd: RawFd) -> SctpDatagram {
-		return SctpDatagram(SctpSocket::from_raw_fd(fd));
+impl FromRawFd for SctpEndpoint {
+	unsafe fn from_raw_fd(fd: RawFd) -> SctpEndpoint {
+		return SctpEndpoint(SctpSocket::from_raw_fd(fd));
 	}
 }
 
@@ -267,7 +278,10 @@ impl SctpListener {
 	
 	/// Create a listener bound to a single address
 	pub fn bind<A: ToSocketAddrs>(address: A) -> Result<SctpListener> {
-		return Self::bindx(&[address]);
+		let raw_addr = try!(SocketAddr::from_addr(&address));
+		let sock = try!(SctpSocket::new(raw_addr.family(), libc::SOCK_STREAM));
+		try!(sock.bind(raw_addr));
+		return Ok(SctpListener(sock));
 	}
 	
 	/// Create a listener bound to multiple addresses. Requires at least one address
