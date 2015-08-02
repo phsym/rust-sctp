@@ -15,9 +15,12 @@ fn main() {
     		println!("{}", peer.has_nodelay().unwrap());
     		
     		// Set socket send buffer size
-    		let oldsize = peer.get_buffer_size(SoBuffer::Send).unwrap();
-    		peer.set_buffer_size(SoBuffer::Send, 4096).unwrap();
-    		println!("Set send buffer size to {} (was : {})", peer.get_buffer_size(SoBuffer::Send).unwrap(), oldsize);
+    		let oldsize = peer.get_buffer_size(SoDirection::Send).unwrap();
+    		peer.set_buffer_size(SoDirection::Send, 4096).unwrap();
+    		println!("Set send buffer size to {} (was : {})", peer.get_buffer_size(SoDirection::Send).unwrap(), oldsize);
+    		
+    		println!("Setting read timeout to 10 s");
+    		peer.set_timeout(SoDirection::Receive, 10).unwrap();
     		
     		// Write a message using the io::Write trait
     		peer.write_all("foo bar\n".as_bytes()).unwrap();

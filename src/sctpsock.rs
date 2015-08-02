@@ -47,15 +47,6 @@ extern "system" {
 	#[cfg(target_os="windows")]
 	fn getsockopt(sock: SOCKET, level: libc::c_int, optname: libc::c_int, optval: *mut libc::c_char, optlen: *mut libc::c_int) -> libc::c_int;
 }
-#[cfg(target_os="linux")]
-pub const SO_RCVTIMEO: libc::c_int = 20;
-#[cfg(target_os="linux")]
-pub const SO_SNDTIMEO: libc::c_int = 21;
-
-#[cfg(target_os="windows")]
-pub const SO_RCVTIMEO: libc::c_int = 0x1006;
-#[cfg(target_os="windows")]
-pub const SO_SNDTIMEO: libc::c_int = 0x1005;
 
 /// SCTP bind operation
 #[allow(dead_code)]
@@ -267,7 +258,7 @@ impl SctpSocket {
 			let addr_ptr: *mut libc::sockaddr = transmute(&mut addr);
 			let sock = try!(check_socket(libc::accept(self.0, addr_ptr, &mut len)));
 			let addr = try!(SocketAddr::from_raw_ptr(addr_ptr, len));
-			return Ok((SctpSocket::from_raw_fd(sock), addr));
+			return Ok((SctpSocket(sock), addr));
 		}
 	}
 	
@@ -420,12 +411,6 @@ impl SctpSocket {
 			let new_sock = try!(check_socket(libc::dup(self.0 as i32) as SOCKET));
 			return Ok(SctpSocket(new_sock));
 		}
-	}
-	
-	/// Wrap the given socket descriptor in a `SctpSocket`. This is unsafe because we can't be sure
-	/// that the given socket is valid
-	pub unsafe fn from_raw_fd(sock: SOCKET) -> SctpSocket {
-		return SctpSocket(sock);
 	}
 }
 

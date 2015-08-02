@@ -1,7 +1,7 @@
 //! This crate provides high level SCTP networking.
 //! Currently it only supports basic SCTP features like multi-homing
 //! in one-to-one and one-to-many associations.
-//! SCTP notifications and working directly on associtaion is not supported yet
+//! SCTP notifications and working directly on association is not supported yet
 //! but is in the TODO list.  
 
 extern crate sctp_sys;
@@ -20,19 +20,26 @@ use std::os::unix::io::{AsRawFd, RawFd, FromRawFd};
 #[cfg(target_os="windows")]
 use std::os::windows::io::{AsRawHandle, RawHandle, FromRawHandle};
 
-/// Socket buffer type
-pub enum SoBuffer {
-	/// RCV buffer
+/// Socket direction
+pub enum SoDirection {
+	/// RCV direction
 	Receive,
-	/// SND buffer
+	/// SND direction
 	Send
 }
 
-impl SoBuffer {
-	fn optname(&self) -> libc::c_int {
+impl SoDirection {
+	fn buffer_opt(&self) -> libc::c_int {
 		return match *self {
-			SoBuffer::Receive => libc::SO_RCVBUF,
-			SoBuffer::Send => libc::SO_SNDBUF
+			SoDirection::Receive => libc::SO_RCVBUF,
+			SoDirection::Send => libc::SO_SNDBUF
+		};
+	}
+	
+	fn timeout_opt(&self) -> libc::c_int {
+		return match *self {
+			SoDirection::Receive => libc::SO_RCVTIMEO,
+			SoDirection::Send => libc::SO_SNDTIMEO
 		};
 	}
 }
@@ -108,16 +115,22 @@ impl SctpStream {
 		return Ok(val == 1);
 	}
 	
-	/// Set the socket buffer size for the buffer specifid by `buf`.
-	/// Linux system will double the provided size
-	pub fn set_buffer_size(&self, buf: SoBuffer, size: usize) -> Result<()> {
-		return self.0.setsockopt(libc::SOL_SOCKET, buf.optname(), &(size as libc::c_int));
+	/// Set the socket buffer size for the direction specified by `dir`.
+	/// Linux systems will double the provided size
+	pub fn set_buffer_size(&self, dir: SoDirection, size: usize) -> Result<()> {
+		return self.0.setsockopt(libc::SOL_SOCKET, dir.buffer_opt(), &(size as libc::c_int));
 	}
 	
-	/// Get the socket buffer size for the buffer specifid by `buf`
-	pub fn get_buffer_size(&self, buf: SoBuffer) -> Result<(usize)> {
-		let val: u32 = try!(self.0.getsockopt(libc::SOL_SOCKET, buf.optname()));
+	/// Get the socket buffer size for the direction specified by `dir`
+	pub fn get_buffer_size(&self, dir: SoDirection) -> Result<(usize)> {
+		let val: u32 = try!(self.0.getsockopt(libc::SOL_SOCKET, dir.buffer_opt()));
 		return Ok(val as usize);
+	}
+	
+	/// Set `timeout` in seconds for operation `dir` (either receive or send)
+	pub fn set_timeout(&self, dir: SoDirection, timeout: i32) -> Result<()> {
+		let tval = libc::timeval { tv_sec: timeout as libc::c_int, tv_usec: 0 };
+		return self.0.setsockopt(libc::SOL_SOCKET, dir.timeout_opt(), &tval);
 	}
 	
 	/// Try to clone the SctpStream. On success, returns a new stream
