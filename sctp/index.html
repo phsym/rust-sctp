@@ -45,8 +45,13 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-0' class='srclink' href='../src/sctp/lib.rs.html#1-279' title='goto source code'>[src]</a></span></h1>
-<h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+        </span><a id='src-0' class='srclink' href='../src/sctp/lib.rs.html#1-409' title='goto source code'>[src]</a></span></h1>
+<div class='docblock'><p>This crate provides high level SCTP networking.
+Currently it only supports basic SCTP features like multi-homing
+in one-to-one and one-to-many associations.
+SCTP notifications and working directly on associations is not supported yet
+but is in the TODO list.  </p>
+</div><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
 <table>
                     <tr class=' module-item'>
                         <td><a class='struct' href='struct.Incoming.html'
@@ -58,10 +63,10 @@
                     </tr>
                 
                     <tr class=' module-item'>
-                        <td><a class='struct' href='struct.SctpDatagram.html'
-                               title='sctp::SctpDatagram'>SctpDatagram</a></td>
+                        <td><a class='struct' href='struct.SctpEndpoint.html'
+                               title='sctp::SctpEndpoint'>SctpEndpoint</a></td>
                         <td class='docblock short'>
-                             <p>One-to-many SCTP stream.</p>
+                             <p>One-to-many SCTP endpoint.</p>
 
                         </td>
                     </tr>
@@ -84,6 +89,16 @@ An accepted connection is represented by <code>SctpStream</code>.</p>
                              <p>One-to-one SCTP connected stream which behaves like a TCP stream.
 A <code>SctpStream</code> can be obtained either actively by connecting to a SCTP endpoint with the
 <code>connect</code> constructor, or passively from a <code>SctpListener</code> which accepts new connections</p>
+
+                        </td>
+                    </tr>
+                </table><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
+<table>
+                    <tr class=' module-item'>
+                        <td><a class='enum' href='enum.SoDirection.html'
+                               title='sctp::SoDirection'>SoDirection</a></td>
+                        <td class='docblock short'>
+                             <p>Socket direction</p>
 
                         </td>
                     </tr>

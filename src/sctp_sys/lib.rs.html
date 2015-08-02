@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/phsym/.cargo/registry/src/github.com-1ecc6299db9ec823/sctp-sys-0.0.3/src/lib.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/phsym/.cargo/registry/src/github.com-1ecc6299db9ec823/sctp-sys-0.0.5/src/lib.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>lib.rs.html -- source</title>
@@ -54,7 +54,27 @@
 <span id="12">12</span>
 <span id="13">13</span>
 <span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
 </pre><pre class='rust '>
+<span class='doccomment'>//! This crate provides a binding to SCTP libraries.</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! Under Linux, the crate is bound to libsctp provided by lksctp-tools,</span>
+<span class='doccomment'>//! and under Windows, it is bound to libsctpsp provided by SctpDrv. However,</span>
+<span class='doccomment'>//! SctpDrv is unstable in Windows 7 and can cause BSOD.</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! # Note</span>
+<span class='doccomment'>//! When using sctp-sys in Windows, `sctp_sys::win::winsock::init()` must be called</span>
+<span class='doccomment'>//! before doing anything, in order to startup winsock (with `WSAStartup` system call)</span>
+
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>libc</span>;
 
 <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span><span class='op'>=</span><span class='string'>&quot;windows&quot;</span>)]</span>
@@ -68,7 +88,7 @@
 <span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>linux</span>::<span class='op'>*</span>;
 
 <span class='kw'>pub</span> <span class='kw'>mod</span> <span class='ident'>common</span>;
-<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>common</span>::<span class='op'>*</span>;
+<span class='kw'>pub</span> <span class='kw'>use</span> <span class='self'>self</span>::<span class='ident'>common</span>::<span class='op'>*</span>;
 </pre>
 </section>
     <section id='search' class="content hidden"></section>

@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/phsym/.cargo/registry/src/github.com-1ecc6299db9ec823/sctp-sys-0.0.3/src/common.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/phsym/.cargo/registry/src/github.com-1ecc6299db9ec823/sctp-sys-0.0.5/src/common.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>common.rs.html -- source</title>
@@ -72,57 +72,13 @@
 <span id="30">30</span>
 <span id="31">31</span>
 <span id="32">32</span>
-<span id="33">33</span>
-<span id="34">34</span>
-<span id="35">35</span>
-<span id="36">36</span>
-<span id="37">37</span>
-<span id="38">38</span>
-<span id="39">39</span>
-<span id="40">40</span>
-<span id="41">41</span>
-<span id="42">42</span>
-<span id="43">43</span>
-<span id="44">44</span>
-<span id="45">45</span>
-<span id="46">46</span>
-<span id="47">47</span>
-<span id="48">48</span>
-<span id="49">49</span>
-<span id="50">50</span>
-<span id="51">51</span>
-<span id="52">52</span>
-<span id="53">53</span>
-<span id="54">54</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='ident'>libc</span>::{<span class='ident'>c_int</span>, <span class='ident'>c_uint</span>};
 
+<span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>SOL_SCTP</span>: <span class='ident'>c_int</span> <span class='op'>=</span> <span class='number'>132</span>;
 <span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>IPPROTO_SCTP</span>: <span class='ident'>c_int</span> <span class='op'>=</span> <span class='number'>132</span>;
 <span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>SOCK_SEQPACKET</span>: <span class='ident'>c_int</span> <span class='op'>=</span> <span class='number'>5</span>;
 
-<span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>SCTP_BINDX_ADD_ADDR</span>: <span class='ident'>c_int</span> <span class='op'>=</span> <span class='number'>0x01</span>;
-<span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>SCTP_BINDX_REM_ADDR</span>: <span class='ident'>c_int</span> <span class='op'>=</span> <span class='number'>0x02</span>;
-
-
-<span class='comment'>// Flags</span>
-<span class='doccomment'>/// Start a shutdown procedures</span>
-<span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>SCTP_EOF</span>: <span class='ident'>u16</span> <span class='op'>=</span>          <span class='number'>0x0100</span>;
-<span class='doccomment'>///Send an ABORT to peer</span>
-<span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>SCTP_ABORT</span>: <span class='ident'>u16</span> <span class='op'>=</span>        <span class='number'>0x0200</span>;
-<span class='doccomment'>/// Message is un-ordered</span>
-<span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>SCTP_UNORDERED</span>: <span class='ident'>u16</span> <span class='op'>=</span>    <span class='number'>0x0400</span>;
-<span class='doccomment'>/// Override the primary-address</span>
-<span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>SCTP_ADDR_OVER</span>: <span class='ident'>u16</span> <span class='op'>=</span>    <span class='number'>0x0800</span>;
-<span class='doccomment'>/// Send this on all associations for the endpoint</span>
-<span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>SCTP_SENDALL</span>: <span class='ident'>u16</span> <span class='op'>=</span>      <span class='number'>0x1000</span>;
-
-<span class='comment'>// The lower byte is an enumeration of PR-SCTP policies</span>
-<span class='doccomment'>/// Time based PR-SCTP</span>
-<span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>SCTP_PR_SCTP_TTL</span>: <span class='ident'>u16</span> <span class='op'>=</span>  <span class='number'>0x0001</span>;
-<span class='doccomment'>/// Buffer based PR-SCTP </span>
-<span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>SCTP_PR_SCTP_BUF</span>: <span class='ident'>u16</span> <span class='op'>=</span>  <span class='number'>0x0002</span>;
-<span class='doccomment'>/// Number of retransmissions based PR-SCTP</span>
-<span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>SCTP_PR_SCTP_RTX</span>: <span class='ident'>u16</span> <span class='op'>=</span>  <span class='number'>0x0003</span>;
 
 <span class='attribute'>#[<span class='ident'>allow</span>(<span class='ident'>non_camel_case_types</span>)]</span>
 <span class='kw'>pub</span> <span class='kw'>type</span> <span class='ident'>sctp_assoc_t</span> <span class='op'>=</span> <span class='ident'>c_uint</span>;

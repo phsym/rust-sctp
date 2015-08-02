@@ -45,9 +45,19 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-0' class='srclink' href='../src/sctp_sys/lib.rs.html#1-14' title='goto source code'>[src]</a></span></h1>
-<h2 id='reexports' class='section-header'><a href="#reexports">Reexports</a></h2>
-<table><tr><td><code>pub use <a class='mod' href='../sctp_sys/linux/index.html' title='sctp_sys::linux'>linux</a>::*;</code></td></tr><tr><td><code>pub use <a class='mod' href='../sctp_sys/common/index.html' title='sctp_sys::common'>common</a>::*;</code></td></tr></table><h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
+        </span><a id='src-0' class='srclink' href='../src/sctp_sys/lib.rs.html#1-24' title='goto source code'>[src]</a></span></h1>
+<div class='docblock'><p>This crate provides a binding to SCTP libraries.</p>
+
+<p>Under Linux, the crate is bound to libsctp provided by lksctp-tools,
+and under Windows, it is bound to libsctpsp provided by SctpDrv. However,
+SctpDrv is unstable in Windows 7 and can cause BSOD.</p>
+
+<h1 id="note" class='section-header'><a
+                           href="#note">Note</a></h1>
+<p>When using sctp-sys in Windows, <code>sctp_sys::win::winsock::init()</code> must be called
+before doing anything, in order to startup winsock (with <code>WSAStartup</code> system call)</p>
+</div><h2 id='reexports' class='section-header'><a href="#reexports">Reexports</a></h2>
+<table><tr><td><code>pub use <a class='mod' href='../sctp_sys/linux/index.html' title='sctp_sys::linux'>linux</a>::*;</code></td></tr><tr><td><code>pub use self::<a class='mod' href='../sctp_sys/common/index.html' title='sctp_sys::common'>common</a>::*;</code></td></tr></table><h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
 <table>
                     <tr class=' module-item'>
                         <td><a class='mod' href='common/index.html'

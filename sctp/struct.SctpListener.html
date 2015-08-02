@@ -45,7 +45,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-2300' class='srclink' href='../src/sctp/lib.rs.html#205' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-3353' class='srclink' href='../src/sctp/lib.rs.html#325' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct SctpListener(_);</pre><div class='docblock'><p>SCTP listener which behaves like a <code>TcpListener</code>.
 A SCTP listener is used to wait for and accept one-to-one SCTP connections.
 An accepted connection is represented by <code>SctpStream</code>.</p>
@@ -56,9 +56,11 @@ An accepted connection is represented by <code>SctpStream</code>.</p>
 </div><h4 id='method.accept' class='method'><code>fn <a href='#method.accept' class='fnname'>accept</a>(&amp;self) -&gt; <a class='type' href='http://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a href='http://doc.rust-lang.org/nightly/std/primitive.tuple.html'>(<a class='struct' href='../sctp/struct.SctpStream.html' title='sctp::SctpStream'>SctpStream</a>, <a class='enum' href='http://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html' title='std::net::addr::SocketAddr'>SocketAddr</a>)</a>&gt;</code></h4>
 <div class='docblock'><p>Accept a new connection</p>
 </div><h4 id='method.incoming' class='method'><code>fn <a href='#method.incoming' class='fnname'>incoming</a>(&amp;self) -&gt; <a class='struct' href='../sctp/struct.Incoming.html' title='sctp::Incoming'>Incoming</a></code></h4>
-<div class='docblock'><p>Iterate over new connections.</p>
+<div class='docblock'><p>Iterate over new connections</p>
 </div><h4 id='method.local_addrs' class='method'><code>fn <a href='#method.local_addrs' class='fnname'>local_addrs</a>(&amp;self) -&gt; <a class='type' href='http://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a class='struct' href='http://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html' title='collections::vec::Vec'>Vec</a>&lt;<a class='enum' href='http://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html' title='std::net::addr::SocketAddr'>SocketAddr</a>&gt;&gt;</code></h4>
-<div class='docblock'><p>Get the listener ocal addresses</p>
+<div class='docblock'><p>Get the listener local addresses</p>
+</div><h4 id='method.set_timeout' class='method'><code>fn <a href='#method.set_timeout' class='fnname'>set_timeout</a>(&amp;self, timeout: <a href='http://doc.rust-lang.org/nightly/std/primitive.i32.html'>i32</a>) -&gt; <a class='type' href='http://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a href='http://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt;</code></h4>
+<div class='docblock'><p>Set <code>timeout</code> in seconds on accept</p>
 </div><h4 id='method.try_clone' class='method'><code>fn <a href='#method.try_clone' class='fnname'>try_clone</a>(&amp;self) -&gt; <a class='type' href='http://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a class='struct' href='../sctp/struct.SctpListener.html' title='sctp::SctpListener'>SctpListener</a>&gt;</code></h4>
 <div class='docblock'><p>Try to clone this listener</p>
 </div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl <a class='trait' href='http://doc.rust-lang.org/nightly/std/sys/ext/io/trait.AsRawFd.html' title='std::sys::ext::io::AsRawFd'>AsRawFd</a> for <a class='struct' href='../sctp/struct.SctpListener.html' title='sctp::SctpListener'>SctpListener</a></code></h3><div class='impl-items'><h4 id='method.as_raw_fd' class='method'><code>fn <a href='http://doc.rust-lang.org/nightly/std/sys/ext/io/trait.AsRawFd.html#method.as_raw_fd' class='fnname'>as_raw_fd</a>(&amp;self) -&gt; <a class='type' href='http://doc.rust-lang.org/nightly/std/sys/ext/io/type.RawFd.html' title='std::sys::ext::io::RawFd'>RawFd</a></code></h4>
