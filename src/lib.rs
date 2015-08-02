@@ -129,7 +129,8 @@ impl SctpStream {
 	
 	/// Set `timeout` in seconds for operation `dir` (either receive or send)
 	pub fn set_timeout(&self, dir: SoDirection, timeout: i32) -> Result<()> {
-		let tval = libc::timeval { tv_sec: timeout as libc::c_int, tv_usec: 0 };
+		// Workaround: Use onf long instead of time_t which does not compile in windows x86_64
+		let tval = libc::timeval { tv_sec: timeout as libc::c_long, tv_usec: 0 };
 		return self.0.setsockopt(libc::SOL_SOCKET, dir.timeout_opt(), &tval);
 	}
 	
