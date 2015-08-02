@@ -156,7 +156,7 @@ impl RawSocketAddr for SocketAddr {
 }
 
 
-/// An SCTP socket, of any kind
+/// A High level wrapper around SCTP socket, of any kind
 pub struct SctpSocket(SOCKET);
 
 impl SctpSocket {

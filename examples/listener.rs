@@ -6,6 +6,7 @@ fn main() {
 	match SctpListener::bindx(&["10.0.2.15:3868", "127.0.0.1:3868"]) {
 		Ok(serv) => {		
 			println!("bound to {:?}", serv.local_addrs().unwrap());
+//			serv.set_timeout(5).unwrap();
 			match serv.accept() {
 				Err(e) => println!("{:?}", e.kind()),
 				Ok((peer, _)) => {

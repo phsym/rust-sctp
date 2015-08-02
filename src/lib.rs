@@ -1,7 +1,7 @@
 //! This crate provides high level SCTP networking.
 //! Currently it only supports basic SCTP features like multi-homing
 //! in one-to-one and one-to-many associations.
-//! SCTP notifications and working directly on association is not supported yet
+//! SCTP notifications and working directly on associations is not supported yet
 //! but is in the TODO list.  
 
 extern crate sctp_sys;
@@ -129,7 +129,7 @@ impl SctpStream {
 	
 	/// Set `timeout` in seconds for operation `dir` (either receive or send)
 	pub fn set_timeout(&self, dir: SoDirection, timeout: i32) -> Result<()> {
-		// Workaround: Use onf long instead of time_t which does not compile in windows x86_64
+		// Workaround: Use of long instead of libc::time_t which does not compile in windows x86_64
 		let tval = libc::timeval { tv_sec: timeout as libc::c_long, tv_usec: 0 };
 		return self.0.setsockopt(libc::SOL_SOCKET, dir.timeout_opt(), &tval);
 	}
@@ -229,9 +229,45 @@ impl SctpEndpoint {
 		return self.0.sendmsg(msg, Some(address), stream, 0);
 	}
 	
-	/// Get local socket addresses on which this socket is bound
+	/// Get local socket addresses to which this socket is bound
 	pub fn local_addrs(&self) -> Result<Vec<SocketAddr>> {
 		return self.0.local_addrs(0);
+	}
+	
+		/// Shuts down the read, write, or both halves of this connection
+	pub fn shutdown(&self, how: Shutdown) -> Result<()> {
+		return self.0.shutdown(how);
+	}
+	
+	/// Set or unset SCTP_NODELAY option
+	pub fn set_nodelay(&self, nodelay: bool) -> Result<()> {
+		let val: libc::c_int = if nodelay { 1 } else { 0 };
+		return self.0.setsockopt(SOL_SCTP, sctp_sys::SCTP_NODELAY, &val);
+	}
+	
+	/// Verify if SCTP_NODELAY option is activated for this socket
+	pub fn has_nodelay(&self) -> Result<bool> {
+		let val: libc::c_int = try!(self.0.sctp_opt_info(sctp_sys::SCTP_NODELAY, 0));
+		return Ok(val == 1);
+	}
+	
+	/// Set the socket buffer size for the direction specified by `dir`.
+	/// Linux systems will double the provided size
+	pub fn set_buffer_size(&self, dir: SoDirection, size: usize) -> Result<()> {
+		return self.0.setsockopt(libc::SOL_SOCKET, dir.buffer_opt(), &(size as libc::c_int));
+	}
+	
+	/// Get the socket buffer size for the direction specified by `dir`
+	pub fn get_buffer_size(&self, dir: SoDirection) -> Result<(usize)> {
+		let val: u32 = try!(self.0.getsockopt(libc::SOL_SOCKET, dir.buffer_opt()));
+		return Ok(val as usize);
+	}
+	
+	/// Set `timeout` in seconds for operation `dir` (either receive or send)
+	pub fn set_timeout(&self, dir: SoDirection, timeout: i32) -> Result<()> {
+		// Workaround: Use of long instead of libc::time_t which does not compile in windows x86_64
+		let tval = libc::timeval { tv_sec: timeout as libc::c_long, tv_usec: 0 };
+		return self.0.setsockopt(libc::SOL_SOCKET, dir.timeout_opt(), &tval);
 	}
 	
 	/// Try to clone this socket
@@ -321,14 +357,21 @@ impl SctpListener {
 		return Ok((SctpStream(sock), addr));
 	}
 	
-	/// Iterate over new connections.
+	/// Iterate over new connections
 	pub fn incoming(&self) -> Incoming {
 		return Incoming(self);
 	}
 	
-	/// Get the listener ocal addresses
+	/// Get the listener local addresses
 	pub fn local_addrs(&self) -> Result<Vec<SocketAddr>> {
 		return self.0.local_addrs(0);
+	}
+	
+	/// Set `timeout` in seconds on accept
+	pub fn set_timeout(&self, timeout: i32) -> Result<()> {
+		// Workaround: Use of long instead of libc::time_t which does not compile in windows x86_64
+		let tval = libc::timeval { tv_sec: timeout as libc::c_long, tv_usec: 0 };
+		return self.0.setsockopt(libc::SOL_SOCKET, libc::SO_RCVTIMEO, &tval);
 	}
 	
 	/// Try to clone this listener
