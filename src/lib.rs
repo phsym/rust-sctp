@@ -81,7 +81,7 @@ impl SctpStream {
 		return self.0.sendmsg::<SocketAddr>(msg, None, stream, 0);
 	}
 	
-	/// Read bytes. On success, return a tulpe with the quantity of
+	/// Read bytes. On success, return a tuple with the quantity of
 	/// bytes received and the stream they were recived on
 	pub fn recvmsg(&self, msg: &mut [u8]) -> Result<(usize, u16)> {
 		let (size, stream, _) = try!(self.0.recvmsg(msg));
