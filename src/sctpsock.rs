@@ -89,7 +89,7 @@ impl SctpAddrType {
 
 
 /// Manage low level socket address structure
-pub trait RawSocketAddr {
+pub trait RawSocketAddr: Sized {
 	/// Get the address family for this socket address
 	fn family(&self) -> i32;
 	
@@ -131,7 +131,7 @@ impl RawSocketAddr for SocketAddr {
 		return match (*addr).sa_family as libc::c_int {
 			libc::AF_INET if len >= size_of::<libc::sockaddr_in>() as libc::socklen_t => Ok(SocketAddr::V4(transmute(*(addr as *const libc::sockaddr_in)))),
 			libc::AF_INET6 if len >= size_of::<libc::sockaddr_in6>() as libc::socklen_t => Ok(SocketAddr::V6(transmute(*(addr as *const libc::sockaddr_in6)))),
-			_ => Err(Error::new(ErrorKind::InvalidInput, "Cannot get peer socket address"))
+			_ => Err(Error::new(ErrorKind::InvalidInput, "Invalid socket address"))
 		};
 	}
 	
@@ -182,7 +182,7 @@ impl SctpSocket {
 	pub fn connectx<A: ToSocketAddrs>(&self, addresses: &[A]) -> Result<sctp_sys::sctp_assoc_t> {
 		if addresses.len() == 0 { return Err(Error::new(ErrorKind::InvalidInput, "No addresses given")); }
 		unsafe {
-			let buf: *mut u8 = libc::malloc((addresses.len() * size_of::<libc::sockaddr_in6>()) as u64) as *mut u8;
+			let buf: *mut u8 = libc::malloc((addresses.len() * size_of::<libc::sockaddr_in6>()) as libc::size_t) as *mut u8;
 			if buf.is_null() {
 				return Err(Error::new(ErrorKind::Other, "Out of memory"));
 			}
@@ -219,7 +219,7 @@ impl SctpSocket {
 	pub fn bindx<A: ToSocketAddrs>(&self, addresses: &[A], op: BindOp) -> Result<()> {
 		if addresses.len() == 0 { return Err(Error::new(ErrorKind::InvalidInput, "No addresses given")); }
 		unsafe {
-			let buf: *mut u8 = libc::malloc((addresses.len() * size_of::<libc::sockaddr_in6>()) as u64) as *mut u8;
+			let buf: *mut u8 = libc::malloc((addresses.len() * size_of::<libc::sockaddr_in6>()) as libc::size_t) as *mut u8;
 			if buf.is_null() {
 				return Err(Error::new(ErrorKind::Other, "Out of memory"));
 			}
@@ -266,7 +266,7 @@ impl SctpSocket {
 		unsafe {
 			let mut	addrs: *mut u8 = std::ptr::null_mut();
 			let len = what.get(self.0, id, transmute(&mut addrs));
-			if len < 0 { return Err(Error::new(ErrorKind::Other, "Cannot retrieve local addresses")); }
+			if len < 0 { return Err(Error::new(ErrorKind::Other, "Cannot retrieve addresses")); }
 			if len == 0 { return Err(Error::new(ErrorKind::AddrNotAvailable, "Socket is unbound")); }
 			
 			let mut vec = Vec::with_capacity(len as usize);
