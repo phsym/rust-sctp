@@ -4,8 +4,9 @@ rust:
   - beta
   - nightly
 matrix:
-  allow_failure:
+  allow_failures:
     - rust: nightly
 
 before_script:
+  - sudo apt-get update
   - sudo apt-get install libsctp1 libsctp-dev lksctp-tools
