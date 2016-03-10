@@ -11,7 +11,8 @@ keywords = ["transport", "network", "sctp", "libsctp", "socket"]
 license = "MIT"
 
 [dependencies]
-sctp-sys = { git = "https://github.com/phsym/sctp-sys" }
+# sctp-sys = { git = "https://github.com/phsym/sctp-sys" }
+sctp-sys = "0.0.7"
 libc = "^0.2"
 winapi = "^0.2"
 ws2_32-sys = "^0.2"
