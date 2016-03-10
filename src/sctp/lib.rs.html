@@ -9,6 +9,7 @@
 
     <title>lib.rs.html -- source</title>
 
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../../main.css">
 
     
@@ -24,17 +25,17 @@
 
     
 
-    <section class="sidebar">
+    <nav class="sidebar">
         
         
-    </section>
+    </nav>
 
     <nav class="sub">
         <form class="search-form js-only">
             <div class="search-container">
                 <input class="search-input" name="search"
                        autocomplete="off"
-                       placeholder="Click or press 'S' to search, '?' for more options..."
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
                        type="search">
             </div>
         </form>
@@ -449,15 +450,24 @@
 <span id="407">407</span>
 <span id="408">408</span>
 <span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
 </pre><pre class='rust '>
 <span class='doccomment'>//! This crate provides high level SCTP networking.</span>
 <span class='doccomment'>//! Currently it only supports basic SCTP features like multi-homing</span>
 <span class='doccomment'>//! in one-to-one and one-to-many associations.</span>
 <span class='doccomment'>//! SCTP notifications and working directly on associations is not supported yet</span>
-<span class='doccomment'>//! but is in the TODO list.  </span>
+<span class='doccomment'>//! but is in the TODO list.</span>
 
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>sctp_sys</span>;
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>libc</span>;
+<span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>winapi</span>;
+<span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>ws2_32</span>;
 
 <span class='kw'>mod</span> <span class='ident'>sctpsock</span>;
 <span class='kw'>use</span> <span class='ident'>sctpsock</span>::{<span class='ident'>SctpSocket</span>, <span class='ident'>BindOp</span>, <span class='ident'>RawSocketAddr</span>};
@@ -472,6 +482,11 @@
 <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span><span class='op'>=</span><span class='string'>&quot;windows&quot;</span>)]</span>
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>os</span>::<span class='ident'>windows</span>::<span class='ident'>io</span>::{<span class='ident'>AsRawHandle</span>, <span class='ident'>RawHandle</span>, <span class='ident'>FromRawHandle</span>};
 
+<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span><span class='op'>=</span><span class='string'>&quot;windows&quot;</span>)]</span>
+<span class='kw'>use</span> <span class='ident'>winapi</span>::{<span class='ident'>SOL_SOCKET</span>, <span class='ident'>SOCK_STREAM</span>, <span class='ident'>AF_INET</span>, <span class='ident'>AF_INET6</span>, <span class='ident'>SO_RCVBUF</span>, <span class='ident'>SO_SNDBUF</span>, <span class='ident'>SO_RCVTIMEO</span>, <span class='ident'>SO_SNDTIMEO</span>};
+<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span><span class='op'>=</span><span class='string'>&quot;linux&quot;</span>)]</span>
+<span class='kw'>use</span> <span class='ident'>libc</span>::{<span class='ident'>SOL_SOCKET</span>, <span class='ident'>SOCK_STREAM</span>, <span class='ident'>AF_INET</span>, <span class='ident'>AF_INET6</span>, <span class='ident'>SO_RCVBUF</span>, <span class='ident'>SO_SNDBUF</span>, <span class='ident'>SO_RCVTIMEO</span>, <span class='ident'>SO_SNDTIMEO</span>};
+
 <span class='doccomment'>/// Socket direction</span>
 <span class='kw'>pub</span> <span class='kw'>enum</span> <span class='ident'>SoDirection</span> {
 	<span class='doccomment'>/// RCV direction</span>
@@ -483,15 +498,15 @@
 <span class='kw'>impl</span> <span class='ident'>SoDirection</span> {
 	<span class='kw'>fn</span> <span class='ident'>buffer_opt</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>libc</span>::<span class='ident'>c_int</span> {
 		<span class='kw'>return</span> <span class='kw'>match</span> <span class='op'>*</span><span class='self'>self</span> {
-			<span class='ident'>SoDirection</span>::<span class='ident'>Receive</span> <span class='op'>=&gt;</span> <span class='ident'>libc</span>::<span class='ident'>SO_RCVBUF</span>,
-			<span class='ident'>SoDirection</span>::<span class='ident'>Send</span> <span class='op'>=&gt;</span> <span class='ident'>libc</span>::<span class='ident'>SO_SNDBUF</span>
+			<span class='ident'>SoDirection</span>::<span class='ident'>Receive</span> <span class='op'>=&gt;</span> <span class='ident'>SO_RCVBUF</span>,
+			<span class='ident'>SoDirection</span>::<span class='ident'>Send</span> <span class='op'>=&gt;</span> <span class='ident'>SO_SNDBUF</span>
 		};
 	}
-	
+
 	<span class='kw'>fn</span> <span class='ident'>timeout_opt</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>libc</span>::<span class='ident'>c_int</span> {
 		<span class='kw'>return</span> <span class='kw'>match</span> <span class='op'>*</span><span class='self'>self</span> {
-			<span class='ident'>SoDirection</span>::<span class='ident'>Receive</span> <span class='op'>=&gt;</span> <span class='ident'>libc</span>::<span class='ident'>SO_RCVTIMEO</span>,
-			<span class='ident'>SoDirection</span>::<span class='ident'>Send</span> <span class='op'>=&gt;</span> <span class='ident'>libc</span>::<span class='ident'>SO_SNDTIMEO</span>
+			<span class='ident'>SoDirection</span>::<span class='ident'>Receive</span> <span class='op'>=&gt;</span> <span class='ident'>SO_RCVTIMEO</span>,
+			<span class='ident'>SoDirection</span>::<span class='ident'>Send</span> <span class='op'>=&gt;</span> <span class='ident'>SO_SNDTIMEO</span>
 		};
 	}
 }
@@ -502,90 +517,90 @@
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>SctpStream</span>(<span class='ident'>SctpSocket</span>);
 
 <span class='kw'>impl</span> <span class='ident'>SctpStream</span> {
-	
+
 	<span class='doccomment'>/// Create a new stream by connecting it to a remote endpoint</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>connect</span><span class='op'>&lt;</span><span class='ident'>A</span>: <span class='ident'>ToSocketAddrs</span><span class='op'>&gt;</span>(<span class='ident'>address</span>: <span class='ident'>A</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>SctpStream</span><span class='op'>&gt;</span> {
 		<span class='kw'>let</span> <span class='ident'>raw_addr</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>SocketAddr</span>::<span class='ident'>from_addr</span>(<span class='kw-2'>&amp;</span><span class='ident'>address</span>));
-		<span class='kw'>let</span> <span class='ident'>sock</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>SctpSocket</span>::<span class='ident'>new</span>(<span class='ident'>raw_addr</span>.<span class='ident'>family</span>(), <span class='ident'>libc</span>::<span class='ident'>SOCK_STREAM</span>));
+		<span class='kw'>let</span> <span class='ident'>sock</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>SctpSocket</span>::<span class='ident'>new</span>(<span class='ident'>raw_addr</span>.<span class='ident'>family</span>(), <span class='ident'>SOCK_STREAM</span>));
 		<span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>sock</span>.<span class='ident'>connect</span>(<span class='ident'>raw_addr</span>));
 		<span class='kw'>return</span> <span class='prelude-val'>Ok</span>(<span class='ident'>SctpStream</span>(<span class='ident'>sock</span>));
 	}
-	
+
 	<span class='doccomment'>/// Create a new stream by connecting it to a remote endpoint having multiple addresses</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>connectx</span><span class='op'>&lt;</span><span class='ident'>A</span>: <span class='ident'>ToSocketAddrs</span><span class='op'>&gt;</span>(<span class='ident'>addresses</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>A</span>]) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>SctpStream</span><span class='op'>&gt;</span> {
 		<span class='kw'>if</span> <span class='ident'>addresses</span>.<span class='ident'>len</span>() <span class='op'>==</span> <span class='number'>0</span> { <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>new</span>(<span class='ident'>ErrorKind</span>::<span class='ident'>InvalidInput</span>, <span class='string'>&quot;No addresses given&quot;</span>)); }
 		<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>vec</span> <span class='op'>=</span> <span class='ident'>Vec</span>::<span class='ident'>with_capacity</span>(<span class='ident'>addresses</span>.<span class='ident'>len</span>());
-		<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>family</span> <span class='op'>=</span> <span class='ident'>libc</span>::<span class='ident'>AF_INET</span>;
+		<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>family</span> <span class='op'>=</span> <span class='ident'>AF_INET</span>;
 		<span class='kw'>for</span> <span class='ident'>address</span> <span class='kw'>in</span> <span class='ident'>addresses</span> {
 			<span class='kw'>let</span> <span class='ident'>a</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>SocketAddr</span>::<span class='ident'>from_addr</span>(<span class='ident'>address</span>));
-			<span class='kw'>if</span> <span class='ident'>a</span>.<span class='ident'>family</span>() <span class='op'>==</span> <span class='ident'>libc</span>::<span class='ident'>AF_INET6</span> { <span class='ident'>family</span> <span class='op'>=</span> <span class='ident'>libc</span>::<span class='ident'>AF_INET6</span>; }
+			<span class='kw'>if</span> <span class='ident'>a</span>.<span class='ident'>family</span>() <span class='op'>==</span> <span class='ident'>AF_INET6</span> { <span class='ident'>family</span> <span class='op'>=</span> <span class='ident'>AF_INET6</span>; }
 			<span class='ident'>vec</span>.<span class='ident'>push</span>(<span class='ident'>a</span>);
 		}
 
-		<span class='kw'>let</span> <span class='ident'>sock</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>SctpSocket</span>::<span class='ident'>new</span>(<span class='ident'>family</span>, <span class='ident'>libc</span>::<span class='ident'>SOCK_STREAM</span>));
+		<span class='kw'>let</span> <span class='ident'>sock</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>SctpSocket</span>::<span class='ident'>new</span>(<span class='ident'>family</span>, <span class='ident'>SOCK_STREAM</span>));
 		<span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>sock</span>.<span class='ident'>connectx</span>(<span class='kw-2'>&amp;</span><span class='ident'>vec</span>));
 		<span class='kw'>return</span> <span class='prelude-val'>Ok</span>(<span class='ident'>SctpStream</span>(<span class='ident'>sock</span>));
 	}
-	
+
 	<span class='doccomment'>/// Send bytes on the specified SCTP stream. On success, returns the</span>
 	<span class='doccomment'>/// quantity of bytes read</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>sendmsg</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>msg</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>u8</span>], <span class='ident'>stream</span>: <span class='ident'>u16</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span> {
 		<span class='kw'>return</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>sendmsg</span>::<span class='op'>&lt;</span><span class='ident'>SocketAddr</span><span class='op'>&gt;</span>(<span class='ident'>msg</span>, <span class='prelude-val'>None</span>, <span class='ident'>stream</span>, <span class='number'>0</span>);
 	}
-	
-	<span class='doccomment'>/// Read bytes. On success, return a tulpe with the quantity of</span>
+
+	<span class='doccomment'>/// Read bytes. On success, return a tuple with the quantity of</span>
 	<span class='doccomment'>/// bytes received and the stream they were recived on</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>recvmsg</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>msg</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> [<span class='ident'>u8</span>]) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>(<span class='ident'>usize</span>, <span class='ident'>u16</span>)<span class='op'>&gt;</span> {
 		<span class='kw'>let</span> (<span class='ident'>size</span>, <span class='ident'>stream</span>, _) <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>recvmsg</span>(<span class='ident'>msg</span>));
 		<span class='kw'>return</span> <span class='prelude-val'>Ok</span>((<span class='ident'>size</span>, <span class='ident'>stream</span>));
 	}
-	
+
 	<span class='doccomment'>/// Return the list of local socket addresses for this stream</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>local_addrs</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>SocketAddr</span><span class='op'>&gt;&gt;</span> {
 		<span class='kw'>return</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>local_addrs</span>(<span class='number'>0</span>);
 	}
-	
+
 	<span class='doccomment'>/// Return the list of socket addresses for the peer this stream is connected to</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>peer_addrs</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>SocketAddr</span><span class='op'>&gt;&gt;</span> {
 		<span class='kw'>return</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>peer_addrs</span>(<span class='number'>0</span>);
 	}
-	
+
 	<span class='doccomment'>/// Shuts down the read, write, or both halves of this connection</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>shutdown</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>how</span>: <span class='ident'>Shutdown</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
 		<span class='kw'>return</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>shutdown</span>(<span class='ident'>how</span>);
 	}
-	
+
 	<span class='doccomment'>/// Set or unset SCTP_NODELAY option</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>set_nodelay</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>nodelay</span>: <span class='ident'>bool</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
 		<span class='kw'>let</span> <span class='ident'>val</span>: <span class='ident'>libc</span>::<span class='ident'>c_int</span> <span class='op'>=</span> <span class='kw'>if</span> <span class='ident'>nodelay</span> { <span class='number'>1</span> } <span class='kw'>else</span> { <span class='number'>0</span> };
 		<span class='kw'>return</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>setsockopt</span>(<span class='ident'>SOL_SCTP</span>, <span class='ident'>sctp_sys</span>::<span class='ident'>SCTP_NODELAY</span>, <span class='kw-2'>&amp;</span><span class='ident'>val</span>);
 	}
-	
+
 	<span class='doccomment'>/// Verify if SCTP_NODELAY option is activated for this socket</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>has_nodelay</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>bool</span><span class='op'>&gt;</span> {
 		<span class='kw'>let</span> <span class='ident'>val</span>: <span class='ident'>libc</span>::<span class='ident'>c_int</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>sctp_opt_info</span>(<span class='ident'>sctp_sys</span>::<span class='ident'>SCTP_NODELAY</span>, <span class='number'>0</span>));
 		<span class='kw'>return</span> <span class='prelude-val'>Ok</span>(<span class='ident'>val</span> <span class='op'>==</span> <span class='number'>1</span>);
 	}
-	
+
 	<span class='doccomment'>/// Set the socket buffer size for the direction specified by `dir`.</span>
 	<span class='doccomment'>/// Linux systems will double the provided size</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>set_buffer_size</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>dir</span>: <span class='ident'>SoDirection</span>, <span class='ident'>size</span>: <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
-		<span class='kw'>return</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>setsockopt</span>(<span class='ident'>libc</span>::<span class='ident'>SOL_SOCKET</span>, <span class='ident'>dir</span>.<span class='ident'>buffer_opt</span>(), <span class='kw-2'>&amp;</span>(<span class='ident'>size</span> <span class='kw'>as</span> <span class='ident'>libc</span>::<span class='ident'>c_int</span>));
+		<span class='kw'>return</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>setsockopt</span>(<span class='ident'>SOL_SOCKET</span>, <span class='ident'>dir</span>.<span class='ident'>buffer_opt</span>(), <span class='kw-2'>&amp;</span>(<span class='ident'>size</span> <span class='kw'>as</span> <span class='ident'>libc</span>::<span class='ident'>c_int</span>));
 	}
-	
+
 	<span class='doccomment'>/// Get the socket buffer size for the direction specified by `dir`</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>get_buffer_size</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>dir</span>: <span class='ident'>SoDirection</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>(<span class='ident'>usize</span>)<span class='op'>&gt;</span> {
-		<span class='kw'>let</span> <span class='ident'>val</span>: <span class='ident'>u32</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>getsockopt</span>(<span class='ident'>libc</span>::<span class='ident'>SOL_SOCKET</span>, <span class='ident'>dir</span>.<span class='ident'>buffer_opt</span>()));
+		<span class='kw'>let</span> <span class='ident'>val</span>: <span class='ident'>u32</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>getsockopt</span>(<span class='ident'>SOL_SOCKET</span>, <span class='ident'>dir</span>.<span class='ident'>buffer_opt</span>()));
 		<span class='kw'>return</span> <span class='prelude-val'>Ok</span>(<span class='ident'>val</span> <span class='kw'>as</span> <span class='ident'>usize</span>);
 	}
-	
+
 	<span class='doccomment'>/// Set `timeout` in seconds for operation `dir` (either receive or send)</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>set_timeout</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>dir</span>: <span class='ident'>SoDirection</span>, <span class='ident'>timeout</span>: <span class='ident'>i32</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
-		<span class='comment'>// Workaround: Use of long instead of libc::time_t which does not compile in windows x86_64</span>
+		<span class='comment'>// Workaround: Use of long instead of libc::time_t which does not compile in windows x86_64</span>
 		<span class='kw'>let</span> <span class='ident'>tval</span> <span class='op'>=</span> <span class='ident'>libc</span>::<span class='ident'>timeval</span> { <span class='ident'>tv_sec</span>: <span class='ident'>timeout</span> <span class='kw'>as</span> <span class='ident'>libc</span>::<span class='ident'>c_long</span>, <span class='ident'>tv_usec</span>: <span class='number'>0</span> };
-		<span class='kw'>return</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>setsockopt</span>(<span class='ident'>libc</span>::<span class='ident'>SOL_SOCKET</span>, <span class='ident'>dir</span>.<span class='ident'>timeout_opt</span>(), <span class='kw-2'>&amp;</span><span class='ident'>tval</span>);
+		<span class='kw'>return</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>setsockopt</span>(<span class='ident'>SOL_SOCKET</span>, <span class='ident'>dir</span>.<span class='ident'>timeout_opt</span>(), <span class='kw-2'>&amp;</span><span class='ident'>tval</span>);
 	}
-	
+
 	<span class='doccomment'>/// Try to clone the SctpStream. On success, returns a new stream</span>
 	<span class='doccomment'>/// wrapping a new socket handler</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>try_clone</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>SctpStream</span><span class='op'>&gt;</span> {
@@ -603,7 +618,7 @@
 	<span class='kw'>fn</span> <span class='ident'>write</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>u8</span>]) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span> {
 		<span class='kw'>return</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>send</span>(<span class='ident'>buf</span>);
 	}
-	
+
 	<span class='kw'>fn</span> <span class='ident'>flush</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
 		<span class='kw'>return</span> <span class='prelude-val'>Ok</span>(());
 	}
@@ -612,7 +627,7 @@
 <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span><span class='op'>=</span><span class='string'>&quot;windows&quot;</span>)]</span>
 <span class='kw'>impl</span> <span class='ident'>AsRawHandle</span> <span class='kw'>for</span> <span class='ident'>SctpStream</span> {
 	<span class='kw'>fn</span> <span class='ident'>as_raw_handle</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>RawHandle</span> {
-		<span class='kw'>return</span> <span class='kw'>return</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>as_raw_handle</span>();	
+		<span class='kw'>return</span> <span class='kw'>return</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>as_raw_handle</span>();
 	}
 }
 
@@ -626,7 +641,7 @@
 <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span><span class='op'>=</span><span class='string'>&quot;linux&quot;</span>)]</span>
 <span class='kw'>impl</span> <span class='ident'>AsRawFd</span> <span class='kw'>for</span> <span class='ident'>SctpStream</span> {
 	<span class='kw'>fn</span> <span class='ident'>as_raw_fd</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>RawFd</span> {
-		<span class='kw'>return</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>as_raw_fd</span>();	
+		<span class='kw'>return</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>as_raw_fd</span>();
 	}
 }
 
@@ -642,23 +657,23 @@
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>SctpEndpoint</span>(<span class='ident'>SctpSocket</span>);
 
 <span class='kw'>impl</span> <span class='ident'>SctpEndpoint</span> {
-	
+
 	<span class='doccomment'>/// Create a one-to-many SCTP endpoint bound to a single address</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>bind</span><span class='op'>&lt;</span><span class='ident'>A</span>: <span class='ident'>ToSocketAddrs</span><span class='op'>&gt;</span>(<span class='ident'>address</span>: <span class='ident'>A</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>SctpEndpoint</span><span class='op'>&gt;</span> {
 		<span class='kw'>let</span> <span class='ident'>raw_addr</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>SocketAddr</span>::<span class='ident'>from_addr</span>(<span class='kw-2'>&amp;</span><span class='ident'>address</span>));
-		<span class='kw'>let</span> <span class='ident'>sock</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>SctpSocket</span>::<span class='ident'>new</span>(<span class='ident'>raw_addr</span>.<span class='ident'>family</span>(), <span class='ident'>libc</span>::<span class='ident'>SOCK_STREAM</span>));
+		<span class='kw'>let</span> <span class='ident'>sock</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>SctpSocket</span>::<span class='ident'>new</span>(<span class='ident'>raw_addr</span>.<span class='ident'>family</span>(), <span class='ident'>SOCK_STREAM</span>));
 		<span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>sock</span>.<span class='ident'>bind</span>(<span class='ident'>raw_addr</span>));
 		<span class='kw'>return</span> <span class='prelude-val'>Ok</span>(<span class='ident'>SctpEndpoint</span>(<span class='ident'>sock</span>));
 	}
-	
+
 	<span class='doccomment'>/// Create a one-to-many SCTP endpoint bound to a multiple addresses. Requires at least one address</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>bindx</span><span class='op'>&lt;</span><span class='ident'>A</span>: <span class='ident'>ToSocketAddrs</span><span class='op'>&gt;</span>(<span class='ident'>addresses</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>A</span>]) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>SctpEndpoint</span><span class='op'>&gt;</span> {
 		<span class='kw'>if</span> <span class='ident'>addresses</span>.<span class='ident'>len</span>() <span class='op'>==</span> <span class='number'>0</span> { <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>new</span>(<span class='ident'>ErrorKind</span>::<span class='ident'>InvalidInput</span>, <span class='string'>&quot;No addresses given&quot;</span>)); }
 		<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>vec</span> <span class='op'>=</span> <span class='ident'>Vec</span>::<span class='ident'>with_capacity</span>(<span class='ident'>addresses</span>.<span class='ident'>len</span>());
-		<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>family</span> <span class='op'>=</span> <span class='ident'>libc</span>::<span class='ident'>AF_INET</span>;
+		<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>family</span> <span class='op'>=</span> <span class='ident'>AF_INET</span>;
 		<span class='kw'>for</span> <span class='ident'>address</span> <span class='kw'>in</span> <span class='ident'>addresses</span> {
 			<span class='kw'>let</span> <span class='ident'>a</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>SocketAddr</span>::<span class='ident'>from_addr</span>(<span class='ident'>address</span>));
-			<span class='kw'>if</span> <span class='ident'>a</span>.<span class='ident'>family</span>() <span class='op'>==</span> <span class='ident'>libc</span>::<span class='ident'>AF_INET6</span> { <span class='ident'>family</span> <span class='op'>=</span> <span class='ident'>libc</span>::<span class='ident'>AF_INET6</span>; }
+			<span class='kw'>if</span> <span class='ident'>a</span>.<span class='ident'>family</span>() <span class='op'>==</span> <span class='ident'>AF_INET6</span> { <span class='ident'>family</span> <span class='op'>=</span> <span class='ident'>AF_INET6</span>; }
 			<span class='ident'>vec</span>.<span class='ident'>push</span>(<span class='ident'>a</span>);
 		}
 
@@ -667,61 +682,61 @@
 		<span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>sock</span>.<span class='ident'>listen</span>(<span class='op'>-</span><span class='number'>1</span>));
 		<span class='kw'>return</span> <span class='prelude-val'>Ok</span>(<span class='ident'>SctpEndpoint</span>(<span class='ident'>sock</span>));
 	}
-	
+
 	<span class='doccomment'>/// Wait for data to be received. On success, returns a triplet containing</span>
 	<span class='doccomment'>/// the quantity of bytes received, the sctp stream id on which data were received, and</span>
 	<span class='doccomment'>/// the socket address used by the peer to send the data</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>recv_from</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>msg</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> [<span class='ident'>u8</span>]) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>(<span class='ident'>usize</span>, <span class='ident'>u16</span>, <span class='ident'>SocketAddr</span>)<span class='op'>&gt;</span> {
 		<span class='kw'>return</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>recvmsg</span>(<span class='ident'>msg</span>);
 	}
-	
+
 	<span class='doccomment'>/// Send data in Sctp style, to the provided address on the stream `stream`.</span>
 	<span class='doccomment'>/// On success, returns the quantity on bytes sent</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>send_to</span><span class='op'>&lt;</span><span class='ident'>A</span>: <span class='ident'>ToSocketAddrs</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>msg</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> [<span class='ident'>u8</span>], <span class='ident'>address</span>: <span class='ident'>A</span>, <span class='ident'>stream</span>: <span class='ident'>u16</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span> {
 		<span class='kw'>return</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>sendmsg</span>(<span class='ident'>msg</span>, <span class='prelude-val'>Some</span>(<span class='ident'>address</span>), <span class='ident'>stream</span>, <span class='number'>0</span>);
 	}
-	
+
 	<span class='doccomment'>/// Get local socket addresses to which this socket is bound</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>local_addrs</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>SocketAddr</span><span class='op'>&gt;&gt;</span> {
 		<span class='kw'>return</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>local_addrs</span>(<span class='number'>0</span>);
 	}
-	
+
 		<span class='doccomment'>/// Shuts down the read, write, or both halves of this connection</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>shutdown</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>how</span>: <span class='ident'>Shutdown</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
 		<span class='kw'>return</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>shutdown</span>(<span class='ident'>how</span>);
 	}
-	
+
 	<span class='doccomment'>/// Set or unset SCTP_NODELAY option</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>set_nodelay</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>nodelay</span>: <span class='ident'>bool</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
 		<span class='kw'>let</span> <span class='ident'>val</span>: <span class='ident'>libc</span>::<span class='ident'>c_int</span> <span class='op'>=</span> <span class='kw'>if</span> <span class='ident'>nodelay</span> { <span class='number'>1</span> } <span class='kw'>else</span> { <span class='number'>0</span> };
 		<span class='kw'>return</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>setsockopt</span>(<span class='ident'>SOL_SCTP</span>, <span class='ident'>sctp_sys</span>::<span class='ident'>SCTP_NODELAY</span>, <span class='kw-2'>&amp;</span><span class='ident'>val</span>);
 	}
-	
+
 	<span class='doccomment'>/// Verify if SCTP_NODELAY option is activated for this socket</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>has_nodelay</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>bool</span><span class='op'>&gt;</span> {
 		<span class='kw'>let</span> <span class='ident'>val</span>: <span class='ident'>libc</span>::<span class='ident'>c_int</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>sctp_opt_info</span>(<span class='ident'>sctp_sys</span>::<span class='ident'>SCTP_NODELAY</span>, <span class='number'>0</span>));
 		<span class='kw'>return</span> <span class='prelude-val'>Ok</span>(<span class='ident'>val</span> <span class='op'>==</span> <span class='number'>1</span>);
 	}
-	
+
 	<span class='doccomment'>/// Set the socket buffer size for the direction specified by `dir`.</span>
 	<span class='doccomment'>/// Linux systems will double the provided size</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>set_buffer_size</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>dir</span>: <span class='ident'>SoDirection</span>, <span class='ident'>size</span>: <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
-		<span class='kw'>return</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>setsockopt</span>(<span class='ident'>libc</span>::<span class='ident'>SOL_SOCKET</span>, <span class='ident'>dir</span>.<span class='ident'>buffer_opt</span>(), <span class='kw-2'>&amp;</span>(<span class='ident'>size</span> <span class='kw'>as</span> <span class='ident'>libc</span>::<span class='ident'>c_int</span>));
+		<span class='kw'>return</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>setsockopt</span>(<span class='ident'>SOL_SOCKET</span>, <span class='ident'>dir</span>.<span class='ident'>buffer_opt</span>(), <span class='kw-2'>&amp;</span>(<span class='ident'>size</span> <span class='kw'>as</span> <span class='ident'>libc</span>::<span class='ident'>c_int</span>));
 	}
-	
+
 	<span class='doccomment'>/// Get the socket buffer size for the direction specified by `dir`</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>get_buffer_size</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>dir</span>: <span class='ident'>SoDirection</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>(<span class='ident'>usize</span>)<span class='op'>&gt;</span> {
-		<span class='kw'>let</span> <span class='ident'>val</span>: <span class='ident'>u32</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>getsockopt</span>(<span class='ident'>libc</span>::<span class='ident'>SOL_SOCKET</span>, <span class='ident'>dir</span>.<span class='ident'>buffer_opt</span>()));
+		<span class='kw'>let</span> <span class='ident'>val</span>: <span class='ident'>u32</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>getsockopt</span>(<span class='ident'>SOL_SOCKET</span>, <span class='ident'>dir</span>.<span class='ident'>buffer_opt</span>()));
 		<span class='kw'>return</span> <span class='prelude-val'>Ok</span>(<span class='ident'>val</span> <span class='kw'>as</span> <span class='ident'>usize</span>);
 	}
-	
+
 	<span class='doccomment'>/// Set `timeout` in seconds for operation `dir` (either receive or send)</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>set_timeout</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>dir</span>: <span class='ident'>SoDirection</span>, <span class='ident'>timeout</span>: <span class='ident'>i32</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
-		<span class='comment'>// Workaround: Use of long instead of libc::time_t which does not compile in windows x86_64</span>
+		<span class='comment'>// Workaround: Use of long instead of libc::time_t which does not compile in windows x86_64</span>
 		<span class='kw'>let</span> <span class='ident'>tval</span> <span class='op'>=</span> <span class='ident'>libc</span>::<span class='ident'>timeval</span> { <span class='ident'>tv_sec</span>: <span class='ident'>timeout</span> <span class='kw'>as</span> <span class='ident'>libc</span>::<span class='ident'>c_long</span>, <span class='ident'>tv_usec</span>: <span class='number'>0</span> };
-		<span class='kw'>return</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>setsockopt</span>(<span class='ident'>libc</span>::<span class='ident'>SOL_SOCKET</span>, <span class='ident'>dir</span>.<span class='ident'>timeout_opt</span>(), <span class='kw-2'>&amp;</span><span class='ident'>tval</span>);
+		<span class='kw'>return</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>setsockopt</span>(<span class='ident'>SOL_SOCKET</span>, <span class='ident'>dir</span>.<span class='ident'>timeout_opt</span>(), <span class='kw-2'>&amp;</span><span class='ident'>tval</span>);
 	}
-	
+
 	<span class='doccomment'>/// Try to clone this socket</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>try_clone</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>SctpEndpoint</span><span class='op'>&gt;</span> {
 		<span class='kw'>return</span> <span class='prelude-val'>Ok</span>(<span class='ident'>SctpEndpoint</span>(<span class='macro'>try</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>try_clone</span>())));
@@ -731,7 +746,7 @@
 <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span><span class='op'>=</span><span class='string'>&quot;windows&quot;</span>)]</span>
 <span class='kw'>impl</span> <span class='ident'>AsRawHandle</span> <span class='kw'>for</span> <span class='ident'>SctpEndpoint</span> {
 	<span class='kw'>fn</span> <span class='ident'>as_raw_handle</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>RawHandle</span> {
-		<span class='kw'>return</span> <span class='kw'>return</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>as_raw_handle</span>();	
+		<span class='kw'>return</span> <span class='kw'>return</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>as_raw_handle</span>();
 	}
 }
 
@@ -745,7 +760,7 @@
 <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span><span class='op'>=</span><span class='string'>&quot;linux&quot;</span>)]</span>
 <span class='kw'>impl</span> <span class='ident'>AsRawFd</span> <span class='kw'>for</span> <span class='ident'>SctpEndpoint</span> {
 	<span class='kw'>fn</span> <span class='ident'>as_raw_fd</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>RawFd</span> {
-		<span class='kw'>return</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>as_raw_fd</span>();	
+		<span class='kw'>return</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>as_raw_fd</span>();
 	}
 }
 
@@ -761,7 +776,7 @@
 
 <span class='kw'>impl</span> <span class='op'>&lt;</span><span class='lifetime'>&#39;a</span><span class='op'>&gt;</span> <span class='ident'>std</span>::<span class='ident'>iter</span>::<span class='ident'>Iterator</span> <span class='kw'>for</span> <span class='ident'>Incoming</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span><span class='op'>&gt;</span> {
 	<span class='kw'>type</span> <span class='ident'>Item</span> <span class='op'>=</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>SctpStream</span><span class='op'>&gt;</span>;
-	
+
 	<span class='kw'>fn</span> <span class='ident'>next</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>SctpStream</span><span class='op'>&gt;&gt;</span> {
 		<span class='kw'>return</span> <span class='kw'>match</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>accept</span>() {
 			<span class='prelude-val'>Ok</span>((<span class='ident'>stream</span>, _)) <span class='op'>=&gt;</span> <span class='prelude-val'>Some</span>(<span class='prelude-val'>Ok</span>(<span class='ident'>stream</span>)),
@@ -777,55 +792,55 @@
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>SctpListener</span>(<span class='ident'>SctpSocket</span>);
 
 <span class='kw'>impl</span> <span class='ident'>SctpListener</span> {
-	
+
 	<span class='doccomment'>/// Create a listener bound to a single address</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>bind</span><span class='op'>&lt;</span><span class='ident'>A</span>: <span class='ident'>ToSocketAddrs</span><span class='op'>&gt;</span>(<span class='ident'>address</span>: <span class='ident'>A</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>SctpListener</span><span class='op'>&gt;</span> {
 		<span class='kw'>let</span> <span class='ident'>raw_addr</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>SocketAddr</span>::<span class='ident'>from_addr</span>(<span class='kw-2'>&amp;</span><span class='ident'>address</span>));
-		<span class='kw'>let</span> <span class='ident'>sock</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>SctpSocket</span>::<span class='ident'>new</span>(<span class='ident'>raw_addr</span>.<span class='ident'>family</span>(), <span class='ident'>libc</span>::<span class='ident'>SOCK_STREAM</span>));
+		<span class='kw'>let</span> <span class='ident'>sock</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>SctpSocket</span>::<span class='ident'>new</span>(<span class='ident'>raw_addr</span>.<span class='ident'>family</span>(), <span class='ident'>SOCK_STREAM</span>));
 		<span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>sock</span>.<span class='ident'>bind</span>(<span class='ident'>raw_addr</span>));
 		<span class='kw'>return</span> <span class='prelude-val'>Ok</span>(<span class='ident'>SctpListener</span>(<span class='ident'>sock</span>));
 	}
-	
+
 	<span class='doccomment'>/// Create a listener bound to multiple addresses. Requires at least one address</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>bindx</span><span class='op'>&lt;</span><span class='ident'>A</span>: <span class='ident'>ToSocketAddrs</span><span class='op'>&gt;</span>(<span class='ident'>addresses</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>A</span>]) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>SctpListener</span><span class='op'>&gt;</span> {
 		<span class='kw'>if</span> <span class='ident'>addresses</span>.<span class='ident'>len</span>() <span class='op'>==</span> <span class='number'>0</span> { <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>new</span>(<span class='ident'>ErrorKind</span>::<span class='ident'>InvalidInput</span>, <span class='string'>&quot;No addresses given&quot;</span>)); }
 		<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>vec</span> <span class='op'>=</span> <span class='ident'>Vec</span>::<span class='ident'>with_capacity</span>(<span class='ident'>addresses</span>.<span class='ident'>len</span>());
-		<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>family</span> <span class='op'>=</span> <span class='ident'>libc</span>::<span class='ident'>AF_INET</span>;
+		<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>family</span> <span class='op'>=</span> <span class='ident'>AF_INET</span>;
 		<span class='kw'>for</span> <span class='ident'>address</span> <span class='kw'>in</span> <span class='ident'>addresses</span> {
 			<span class='kw'>let</span> <span class='ident'>a</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>SocketAddr</span>::<span class='ident'>from_addr</span>(<span class='ident'>address</span>));
-			<span class='kw'>if</span> <span class='ident'>a</span>.<span class='ident'>family</span>() <span class='op'>==</span> <span class='ident'>libc</span>::<span class='ident'>AF_INET6</span> { <span class='ident'>family</span> <span class='op'>=</span> <span class='ident'>libc</span>::<span class='ident'>AF_INET6</span>; }
+			<span class='kw'>if</span> <span class='ident'>a</span>.<span class='ident'>family</span>() <span class='op'>==</span> <span class='ident'>AF_INET6</span> { <span class='ident'>family</span> <span class='op'>=</span> <span class='ident'>AF_INET6</span>; }
 			<span class='ident'>vec</span>.<span class='ident'>push</span>(<span class='ident'>a</span>);
 		}
 
-		<span class='kw'>let</span> <span class='ident'>sock</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>SctpSocket</span>::<span class='ident'>new</span>(<span class='ident'>family</span>, <span class='ident'>libc</span>::<span class='ident'>SOCK_STREAM</span>));
+		<span class='kw'>let</span> <span class='ident'>sock</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>SctpSocket</span>::<span class='ident'>new</span>(<span class='ident'>family</span>, <span class='ident'>SOCK_STREAM</span>));
 		<span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>sock</span>.<span class='ident'>bindx</span>(<span class='kw-2'>&amp;</span><span class='ident'>vec</span>, <span class='ident'>BindOp</span>::<span class='ident'>AddAddr</span>));
 		<span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>sock</span>.<span class='ident'>listen</span>(<span class='op'>-</span><span class='number'>1</span>));
 		<span class='kw'>return</span> <span class='prelude-val'>Ok</span>(<span class='ident'>SctpListener</span>(<span class='ident'>sock</span>));
 	}
-	
+
 	<span class='doccomment'>/// Accept a new connection</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>accept</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>(<span class='ident'>SctpStream</span>, <span class='ident'>SocketAddr</span>)<span class='op'>&gt;</span> {
 		<span class='kw'>let</span> (<span class='ident'>sock</span>, <span class='ident'>addr</span>) <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>accept</span>());
 		<span class='kw'>return</span> <span class='prelude-val'>Ok</span>((<span class='ident'>SctpStream</span>(<span class='ident'>sock</span>), <span class='ident'>addr</span>));
 	}
-	
+
 	<span class='doccomment'>/// Iterate over new connections</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>incoming</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>Incoming</span> {
 		<span class='kw'>return</span> <span class='ident'>Incoming</span>(<span class='self'>self</span>);
 	}
-	
+
 	<span class='doccomment'>/// Get the listener local addresses</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>local_addrs</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>SocketAddr</span><span class='op'>&gt;&gt;</span> {
 		<span class='kw'>return</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>local_addrs</span>(<span class='number'>0</span>);
 	}
-	
+
 	<span class='doccomment'>/// Set `timeout` in seconds on accept</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>set_timeout</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>timeout</span>: <span class='ident'>i32</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
-		<span class='comment'>// Workaround: Use of long instead of libc::time_t which does not compile in windows x86_64</span>
+		<span class='comment'>// Workaround: Use of long instead of libc::time_t which does not compile in windows x86_64</span>
 		<span class='kw'>let</span> <span class='ident'>tval</span> <span class='op'>=</span> <span class='ident'>libc</span>::<span class='ident'>timeval</span> { <span class='ident'>tv_sec</span>: <span class='ident'>timeout</span> <span class='kw'>as</span> <span class='ident'>libc</span>::<span class='ident'>c_long</span>, <span class='ident'>tv_usec</span>: <span class='number'>0</span> };
-		<span class='kw'>return</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>setsockopt</span>(<span class='ident'>libc</span>::<span class='ident'>SOL_SOCKET</span>, <span class='ident'>libc</span>::<span class='ident'>SO_RCVTIMEO</span>, <span class='kw-2'>&amp;</span><span class='ident'>tval</span>);
+		<span class='kw'>return</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>setsockopt</span>(<span class='ident'>SOL_SOCKET</span>, <span class='ident'>SO_RCVTIMEO</span>, <span class='kw-2'>&amp;</span><span class='ident'>tval</span>);
 	}
-	
+
 	<span class='doccomment'>/// Try to clone this listener</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>try_clone</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>SctpListener</span><span class='op'>&gt;</span> {
 		<span class='kw'>return</span> <span class='prelude-val'>Ok</span>(<span class='ident'>SctpListener</span>(<span class='macro'>try</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>try_clone</span>())));
@@ -835,7 +850,7 @@
 <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span><span class='op'>=</span><span class='string'>&quot;windows&quot;</span>)]</span>
 <span class='kw'>impl</span> <span class='ident'>AsRawHandle</span> <span class='kw'>for</span> <span class='ident'>SctpListener</span> {
 	<span class='kw'>fn</span> <span class='ident'>as_raw_handle</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>RawHandle</span> {
-		<span class='kw'>return</span> <span class='kw'>return</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>as_raw_handle</span>();	
+		<span class='kw'>return</span> <span class='kw'>return</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>as_raw_handle</span>();
 	}
 }
 
@@ -849,7 +864,7 @@
 <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span><span class='op'>=</span><span class='string'>&quot;linux&quot;</span>)]</span>
 <span class='kw'>impl</span> <span class='ident'>AsRawFd</span> <span class='kw'>for</span> <span class='ident'>SctpListener</span> {
 	<span class='kw'>fn</span> <span class='ident'>as_raw_fd</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>RawFd</span> {
-		<span class='kw'>return</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>as_raw_fd</span>();	
+		<span class='kw'>return</span> <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>as_raw_fd</span>();
 	}
 }
 
@@ -865,40 +880,49 @@
 
     <section class="footer"></section>
 
-    <div id="help" class="hidden">
-        <div class="shortcuts">
-            <h1>Keyboard shortcuts</h1>
-            <dl>
-                <dt>?</dt>
-                <dd>Show this help dialog</dd>
-                <dt>S</dt>
-                <dd>Focus the search field</dd>
-                <dt>&larrb;</dt>
-                <dd>Move up in search results</dd>
-                <dt>&rarrb;</dt>
-                <dd>Move down in search results</dd>
-                <dt>&#9166;</dt>
-                <dd>Go to active search result</dd>
-            </dl>
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code>)
+                </p>
+            </div>
         </div>
-        <div class="infos">
-            <h1>Search tricks</h1>
-            <p>
-                Prefix searches with a type followed by a colon (e.g.
-                <code>fn:</code>) to restrict the search to a given type.
-            </p>
-            <p>
-                Accepted types are: <code>fn</code>, <code>mod</code>,
-                <code>struct</code>, <code>enum</code>,
-                <code>trait</code>, <code>typedef</code> (or
-                <code>tdef</code>).
-            </p>
-            <p>
-                Search functions by type signature (e.g.
-                <code>vec -> usize</code>)
-            </p>
-        </div>
-    </div>
+    </aside>
 
     
 
@@ -910,6 +934,6 @@
     <script src="../../jquery.js"></script>
     <script src="../../main.js"></script>
     
-    <script async src="../../search-index.js"></script>
+    <script defer src="../../search-index.js"></script>
 </body>
 </html>

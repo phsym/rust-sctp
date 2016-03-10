@@ -9,6 +9,7 @@
 
     <title>sctpsock.rs.html -- source</title>
 
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../../main.css">
 
     
@@ -24,17 +25,17 @@
 
     
 
-    <section class="sidebar">
+    <nav class="sidebar">
         
         
-    </section>
+    </nav>
 
     <nav class="sub">
         <form class="search-form js-only">
             <div class="search-container">
                 <input class="search-input" name="search"
                        autocomplete="off"
-                       placeholder="Click or press 'S' to search, '?' for more options..."
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
                        type="search">
             </div>
         </form>
@@ -505,6 +506,23 @@
 <span id="463">463</span>
 <span id="464">464</span>
 <span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='ident'>std</span>;
 <span class='kw'>use</span> <span class='ident'>libc</span>;
@@ -520,38 +538,55 @@
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>os</span>::<span class='ident'>windows</span>::<span class='ident'>io</span>::{<span class='ident'>AsRawHandle</span>, <span class='ident'>RawHandle</span>, <span class='ident'>FromRawHandle</span>};
 
 <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span><span class='op'>=</span><span class='string'>&quot;windows&quot;</span>)]</span>
-<span class='kw'>pub</span> <span class='kw'>type</span> <span class='ident'>SOCKET</span> <span class='op'>=</span> <span class='ident'>libc</span>::<span class='ident'>SOCKET</span>;
-<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span><span class='op'>=</span><span class='string'>&quot;linux&quot;</span>)]</span>
-<span class='kw'>pub</span> <span class='kw'>type</span> <span class='ident'>SOCKET</span> <span class='op'>=</span> <span class='ident'>libc</span>::<span class='ident'>c_int</span>;
+<span class='kw'>mod</span> <span class='ident'>win</span> {
+	<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>io</span>::{<span class='prelude-ty'>Result</span>, <span class='ident'>Error</span>};
+	<span class='kw'>use</span> <span class='ident'>libc</span>;
+	<span class='kw'>use</span> <span class='ident'>winapi</span>;
 
-<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span><span class='op'>=</span><span class='string'>&quot;windows&quot;</span>)]</span>
-<span class='kw'>type</span> <span class='ident'>RWlen</span> <span class='op'>=</span> <span class='ident'>i32</span>;
-<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span><span class='op'>=</span><span class='string'>&quot;linux&quot;</span>)]</span>
-<span class='kw'>type</span> <span class='ident'>RWlen</span> <span class='op'>=</span> <span class='ident'>libc</span>::<span class='ident'>size_t</span>;
+	<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>ws2_32</span>::{<span class='ident'>socket</span>, <span class='ident'>connect</span>, <span class='ident'>bind</span>, <span class='ident'>listen</span>, <span class='ident'>accept</span>, <span class='ident'>recv</span>, <span class='ident'>send</span>, <span class='ident'>shutdown</span>, <span class='ident'>setsockopt</span>, <span class='ident'>closesocket</span>};
+	<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>winapi</span>::{<span class='ident'>SOCKADDR</span> <span class='kw'>as</span> <span class='ident'>sockaddr</span>, <span class='ident'>SOCKADDR_IN</span> <span class='kw'>as</span> <span class='ident'>sockaddr_in</span>, <span class='ident'>sockaddr_in6</span>, <span class='ident'>socklen_t</span>, <span class='ident'>AF_INET</span>, <span class='ident'>AF_INET6</span>, <span class='ident'>SOCKET</span>};
 
-<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span><span class='op'>=</span><span class='string'>&quot;windows&quot;</span>)]</span>
-<span class='kw'>use</span> <span class='ident'>libc</span>::<span class='ident'>closesocket</span>;
+	<span class='kw'>pub</span> <span class='kw'>type</span> <span class='ident'>RWlen</span> <span class='op'>=</span> <span class='ident'>i32</span>;
+
+	<span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>SHUT_RD</span>: <span class='ident'>libc</span>::<span class='ident'>c_int</span> <span class='op'>=</span> <span class='number'>0</span>;
+	<span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>SHUT_WR</span>: <span class='ident'>libc</span>::<span class='ident'>c_int</span> <span class='op'>=</span> <span class='number'>1</span>;
+	<span class='kw'>pub</span> <span class='kw'>const</span> <span class='ident'>SHUT_RDWR</span>: <span class='ident'>libc</span>::<span class='ident'>c_int</span> <span class='op'>=</span> <span class='number'>2</span>;
+
+	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>check_socket</span>(<span class='ident'>sock</span>: <span class='ident'>SOCKET</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>SOCKET</span><span class='op'>&gt;</span> {
+		<span class='kw'>if</span> <span class='ident'>sock</span> <span class='op'>==</span> <span class='ident'>winapi</span>::<span class='ident'>INVALID_SOCKET</span> { <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>last_os_error</span>()); }
+		<span class='kw'>return</span> <span class='prelude-val'>Ok</span>(<span class='ident'>sock</span>);
+	}
+}
+
 <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span><span class='op'>=</span><span class='string'>&quot;linux&quot;</span>)]</span>
-<span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>closesocket</span>(<span class='ident'>sock</span>: <span class='ident'>SOCKET</span>) {
-	<span class='ident'>libc</span>::<span class='ident'>close</span>(<span class='ident'>sock</span>);
+<span class='kw'>mod</span> <span class='ident'>linux</span> {
+	<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>io</span>::{<span class='prelude-ty'>Result</span>, <span class='ident'>Error</span>};
+	<span class='kw'>use</span> <span class='ident'>libc</span>;
+
+	<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>libc</span>::{<span class='ident'>sockaddr</span>, <span class='ident'>sockaddr_in</span>, <span class='ident'>sockaddr_in6</span>, <span class='ident'>socklen_t</span>, <span class='ident'>AF_INET</span>,<span class='ident'>AF_INET6</span>, <span class='ident'>socket</span>, <span class='ident'>connect</span>, <span class='ident'>bind</span>, <span class='ident'>listen</span>, <span class='ident'>accept</span>, <span class='ident'>recv</span>, <span class='ident'>send</span>, <span class='ident'>shutdown</span>, <span class='ident'>setsockopt</span>, <span class='ident'>SHUT_RDWR</span>, <span class='ident'>SHUT_RD</span>, <span class='ident'>SHUT_WR</span>};
+
+	<span class='kw'>pub</span> <span class='kw'>type</span> <span class='ident'>SOCKET</span> <span class='op'>=</span> <span class='ident'>libc</span>::<span class='ident'>c_int</span>;
+	<span class='kw'>pub</span> <span class='kw'>type</span> <span class='ident'>RWlen</span> <span class='op'>=</span> <span class='ident'>libc</span>::<span class='ident'>size_t</span>;
+
+	<span class='kw'>pub</span> <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>closesocket</span>(<span class='ident'>sock</span>: <span class='ident'>SOCKET</span>) {
+		<span class='ident'>libc</span>::<span class='ident'>close</span>(<span class='ident'>sock</span>);
+	}
+
+	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>check_socket</span>(<span class='ident'>sock</span>: <span class='ident'>SOCKET</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>SOCKET</span><span class='op'>&gt;</span> {
+		<span class='kw'>if</span> <span class='ident'>sock</span> <span class='op'>&lt;</span> <span class='number'>0</span> { <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>last_os_error</span>()); }
+		<span class='kw'>return</span> <span class='prelude-val'>Ok</span>(<span class='ident'>sock</span>);
+	}
 }
 
 <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span><span class='op'>=</span><span class='string'>&quot;windows&quot;</span>)]</span>
-<span class='kw'>fn</span> <span class='ident'>check_socket</span>(<span class='ident'>sock</span>: <span class='ident'>SOCKET</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>SOCKET</span><span class='op'>&gt;</span> {
-	<span class='kw'>if</span> <span class='ident'>sock</span> <span class='op'>==</span> <span class='ident'>libc</span>::<span class='ident'>INVALID_SOCKET</span> { <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>last_os_error</span>()); }
-	<span class='kw'>return</span> <span class='prelude-val'>Ok</span>(<span class='ident'>sock</span>);
-}
-
+<span class='kw'>use</span> <span class='self'>self</span>::<span class='ident'>win</span>::<span class='op'>*</span>;
 <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span><span class='op'>=</span><span class='string'>&quot;linux&quot;</span>)]</span>
-<span class='kw'>fn</span> <span class='ident'>check_socket</span>(<span class='ident'>sock</span>: <span class='ident'>SOCKET</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>SOCKET</span><span class='op'>&gt;</span> {
-	<span class='kw'>if</span> <span class='ident'>sock</span> <span class='op'>&lt;</span> <span class='number'>0</span> { <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>last_os_error</span>()); }
-	<span class='kw'>return</span> <span class='prelude-val'>Ok</span>(<span class='ident'>sock</span>);
-}
+<span class='kw'>use</span> <span class='self'>self</span>::<span class='ident'>linux</span>::<span class='op'>*</span>;
 
-<span class='comment'>// XXX: Until getsockopt is available in libc crate</span>
+<span class='comment'>// XXX: Until getsockopt is available in libc crate</span>
 <span class='kw'>extern</span> <span class='string'>&quot;system&quot;</span> {
 	<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span><span class='op'>=</span><span class='string'>&quot;linux&quot;</span>)]</span>
-	<span class='kw'>fn</span> <span class='ident'>getsockopt</span>(<span class='ident'>sock</span>: <span class='ident'>SOCKET</span>, <span class='ident'>level</span>: <span class='ident'>libc</span>::<span class='ident'>c_int</span>, <span class='ident'>optname</span>: <span class='ident'>libc</span>::<span class='ident'>c_int</span>, <span class='ident'>optval</span>: <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>libc</span>::<span class='ident'>c_void</span>, <span class='ident'>optlen</span>: <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>libc</span>::<span class='ident'>socklen_t</span>) <span class='op'>-&gt;</span> <span class='ident'>libc</span>::<span class='ident'>c_int</span>;
+	<span class='kw'>fn</span> <span class='ident'>getsockopt</span>(<span class='ident'>sock</span>: <span class='ident'>SOCKET</span>, <span class='ident'>level</span>: <span class='ident'>libc</span>::<span class='ident'>c_int</span>, <span class='ident'>optname</span>: <span class='ident'>libc</span>::<span class='ident'>c_int</span>, <span class='ident'>optval</span>: <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>libc</span>::<span class='ident'>c_void</span>, <span class='ident'>optlen</span>: <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>socklen_t</span>) <span class='op'>-&gt;</span> <span class='ident'>libc</span>::<span class='ident'>c_int</span>;
 	<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span><span class='op'>=</span><span class='string'>&quot;windows&quot;</span>)]</span>
 	<span class='kw'>fn</span> <span class='ident'>getsockopt</span>(<span class='ident'>sock</span>: <span class='ident'>SOCKET</span>, <span class='ident'>level</span>: <span class='ident'>libc</span>::<span class='ident'>c_int</span>, <span class='ident'>optname</span>: <span class='ident'>libc</span>::<span class='ident'>c_int</span>, <span class='ident'>optval</span>: <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>libc</span>::<span class='ident'>c_char</span>, <span class='ident'>optlen</span>: <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>libc</span>::<span class='ident'>c_int</span>) <span class='op'>-&gt;</span> <span class='ident'>libc</span>::<span class='ident'>c_int</span>;
 }
@@ -580,14 +615,14 @@
 }
 
 <span class='kw'>impl</span> <span class='ident'>SctpAddrType</span> {
-	<span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>get</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>sock</span>: <span class='ident'>SOCKET</span>, <span class='ident'>id</span>: <span class='ident'>sctp_sys</span>::<span class='ident'>sctp_assoc_t</span>, <span class='ident'>ptr</span>: <span class='op'>*</span><span class='kw-2'>mut</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>libc</span>::<span class='ident'>sockaddr</span>) <span class='op'>-&gt;</span> <span class='ident'>libc</span>::<span class='ident'>c_int</span> {
+	<span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>get</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>sock</span>: <span class='ident'>SOCKET</span>, <span class='ident'>id</span>: <span class='ident'>sctp_sys</span>::<span class='ident'>sctp_assoc_t</span>, <span class='ident'>ptr</span>: <span class='op'>*</span><span class='kw-2'>mut</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>sockaddr</span>) <span class='op'>-&gt;</span> <span class='ident'>libc</span>::<span class='ident'>c_int</span> {
 		<span class='kw'>return</span> <span class='kw'>match</span> <span class='op'>*</span><span class='self'>self</span> {
 			<span class='ident'>SctpAddrType</span>::<span class='ident'>Local</span> <span class='op'>=&gt;</span> <span class='ident'>sctp_sys</span>::<span class='ident'>sctp_getladdrs</span>(<span class='ident'>sock</span>, <span class='ident'>id</span>, <span class='ident'>ptr</span>),
 			<span class='ident'>SctpAddrType</span>::<span class='ident'>Peer</span> <span class='op'>=&gt;</span> <span class='ident'>sctp_sys</span>::<span class='ident'>sctp_getpaddrs</span>(<span class='ident'>sock</span>, <span class='ident'>id</span>, <span class='ident'>ptr</span>)
 		};
 	}
-	
-	<span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>free</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>ptr</span>: <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>libc</span>::<span class='ident'>sockaddr</span>) {
+
+	<span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>free</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>ptr</span>: <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>sockaddr</span>) {
 		<span class='kw'>return</span> <span class='kw'>match</span> <span class='op'>*</span><span class='self'>self</span> {
 			<span class='ident'>SctpAddrType</span>::<span class='ident'>Local</span> <span class='op'>=&gt;</span> <span class='ident'>sctp_sys</span>::<span class='ident'>sctp_freeladdrs</span>(<span class='ident'>ptr</span>),
 			<span class='ident'>SctpAddrType</span>::<span class='ident'>Peer</span> <span class='op'>=&gt;</span> <span class='ident'>sctp_sys</span>::<span class='ident'>sctp_freepaddrs</span>(<span class='ident'>ptr</span>)
@@ -597,22 +632,22 @@
 
 
 <span class='doccomment'>/// Manage low level socket address structure</span>
-<span class='kw'>pub</span> <span class='kw'>trait</span> <span class='ident'>RawSocketAddr</span> {
+<span class='kw'>pub</span> <span class='kw'>trait</span> <span class='ident'>RawSocketAddr</span>: <span class='ident'>Sized</span> {
 	<span class='doccomment'>/// Get the address family for this socket address</span>
 	<span class='kw'>fn</span> <span class='ident'>family</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>i32</span>;
-	
+
 	<span class='doccomment'>/// Get the raw socket address structure size</span>
-	<span class='kw'>fn</span> <span class='ident'>addr_len</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>libc</span>::<span class='ident'>socklen_t</span>;
-	
-	<span class='doccomment'>/// Create from a raw socket address </span>
-	<span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>from_raw_ptr</span>(<span class='ident'>addr</span>: <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>libc</span>::<span class='ident'>sockaddr</span>, <span class='ident'>len</span>: <span class='ident'>libc</span>::<span class='ident'>socklen_t</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='kw'>Self</span><span class='op'>&gt;</span>;
-	
+	<span class='kw'>fn</span> <span class='ident'>addr_len</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>socklen_t</span>;
+
+	<span class='doccomment'>/// Create from a raw socket address</span>
+	<span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>from_raw_ptr</span>(<span class='ident'>addr</span>: <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>sockaddr</span>, <span class='ident'>len</span>: <span class='ident'>socklen_t</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='kw'>Self</span><span class='op'>&gt;</span>;
+
 	<span class='doccomment'>/// Return an immutable pointer to the raw socket address structure</span>
-	<span class='kw'>fn</span> <span class='ident'>as_ptr</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>libc</span>::<span class='ident'>sockaddr</span>;
-	
+	<span class='kw'>fn</span> <span class='ident'>as_ptr</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>sockaddr</span>;
+
 	<span class='doccomment'>/// Return a mutable pointer to the raw socket address structure</span>
-	<span class='kw'>fn</span> <span class='ident'>as_mut_ptr</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>libc</span>::<span class='ident'>sockaddr</span>;
-	
+	<span class='kw'>fn</span> <span class='ident'>as_mut_ptr</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>sockaddr</span>;
+
 	<span class='doccomment'>/// Create from a ToSocketAddrs</span>
 	<span class='kw'>fn</span> <span class='ident'>from_addr</span><span class='op'>&lt;</span><span class='ident'>A</span>: <span class='ident'>ToSocketAddrs</span><span class='op'>&gt;</span>(<span class='ident'>address</span>: <span class='ident'>A</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='kw'>Self</span><span class='op'>&gt;</span>;
 }
@@ -620,43 +655,43 @@
 <span class='kw'>impl</span> <span class='ident'>RawSocketAddr</span> <span class='kw'>for</span> <span class='ident'>SocketAddr</span> {
 	<span class='kw'>fn</span> <span class='ident'>family</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>i32</span> {
 		<span class='kw'>return</span> <span class='kw'>match</span> <span class='op'>*</span><span class='self'>self</span> {
-			<span class='ident'>SocketAddr</span>::<span class='ident'>V4</span>(..) <span class='op'>=&gt;</span> <span class='ident'>libc</span>::<span class='ident'>AF_INET</span>,
-			<span class='ident'>SocketAddr</span>::<span class='ident'>V6</span>(..) <span class='op'>=&gt;</span> <span class='ident'>libc</span>::<span class='ident'>AF_INET6</span>
+			<span class='ident'>SocketAddr</span>::<span class='ident'>V4</span>(..) <span class='op'>=&gt;</span> <span class='ident'>AF_INET</span>,
+			<span class='ident'>SocketAddr</span>::<span class='ident'>V6</span>(..) <span class='op'>=&gt;</span> <span class='ident'>AF_INET6</span>
 		};
 	}
-	
-	<span class='kw'>fn</span> <span class='ident'>addr_len</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>libc</span>::<span class='ident'>socklen_t</span> {
+
+	<span class='kw'>fn</span> <span class='ident'>addr_len</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>socklen_t</span> {
 		<span class='kw'>return</span> <span class='kw'>match</span> <span class='op'>*</span><span class='self'>self</span> {
-			<span class='ident'>SocketAddr</span>::<span class='ident'>V4</span>(..) <span class='op'>=&gt;</span> <span class='ident'>size_of</span>::<span class='op'>&lt;</span><span class='ident'>libc</span>::<span class='ident'>sockaddr_in</span><span class='op'>&gt;</span>(),
-			<span class='ident'>SocketAddr</span>::<span class='ident'>V6</span>(..) <span class='op'>=&gt;</span> <span class='ident'>size_of</span>::<span class='op'>&lt;</span><span class='ident'>libc</span>::<span class='ident'>sockaddr_in6</span><span class='op'>&gt;</span>()
-		} <span class='kw'>as</span> <span class='ident'>libc</span>::<span class='ident'>socklen_t</span>;
+			<span class='ident'>SocketAddr</span>::<span class='ident'>V4</span>(..) <span class='op'>=&gt;</span> <span class='ident'>size_of</span>::<span class='op'>&lt;</span><span class='ident'>sockaddr_in</span><span class='op'>&gt;</span>(),
+			<span class='ident'>SocketAddr</span>::<span class='ident'>V6</span>(..) <span class='op'>=&gt;</span> <span class='ident'>size_of</span>::<span class='op'>&lt;</span><span class='ident'>sockaddr_in6</span><span class='op'>&gt;</span>()
+		} <span class='kw'>as</span> <span class='ident'>socklen_t</span>;
 	}
-	
-	<span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>from_raw_ptr</span>(<span class='ident'>addr</span>: <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>libc</span>::<span class='ident'>sockaddr</span>, <span class='ident'>len</span>: <span class='ident'>libc</span>::<span class='ident'>socklen_t</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>SocketAddr</span><span class='op'>&gt;</span> {
-		<span class='kw'>if</span> <span class='ident'>len</span> <span class='op'>&lt;</span> <span class='ident'>size_of</span>::<span class='op'>&lt;</span><span class='ident'>libc</span>::<span class='ident'>sockaddr</span><span class='op'>&gt;</span>() <span class='kw'>as</span> <span class='ident'>libc</span>::<span class='ident'>socklen_t</span> {
+
+	<span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>from_raw_ptr</span>(<span class='ident'>addr</span>: <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>sockaddr</span>, <span class='ident'>len</span>: <span class='ident'>socklen_t</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>SocketAddr</span><span class='op'>&gt;</span> {
+		<span class='kw'>if</span> <span class='ident'>len</span> <span class='op'>&lt;</span> <span class='ident'>size_of</span>::<span class='op'>&lt;</span><span class='ident'>sockaddr</span><span class='op'>&gt;</span>() <span class='kw'>as</span> <span class='ident'>socklen_t</span> {
 			<span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>new</span>(<span class='ident'>ErrorKind</span>::<span class='ident'>InvalidInput</span>, <span class='string'>&quot;Invalid address length&quot;</span>));
 		}
 		<span class='kw'>return</span> <span class='kw'>match</span> (<span class='op'>*</span><span class='ident'>addr</span>).<span class='ident'>sa_family</span> <span class='kw'>as</span> <span class='ident'>libc</span>::<span class='ident'>c_int</span> {
-			<span class='ident'>libc</span>::<span class='ident'>AF_INET</span> <span class='kw'>if</span> <span class='ident'>len</span> <span class='op'>&gt;=</span> <span class='ident'>size_of</span>::<span class='op'>&lt;</span><span class='ident'>libc</span>::<span class='ident'>sockaddr_in</span><span class='op'>&gt;</span>() <span class='kw'>as</span> <span class='ident'>libc</span>::<span class='ident'>socklen_t</span> <span class='op'>=&gt;</span> <span class='prelude-val'>Ok</span>(<span class='ident'>SocketAddr</span>::<span class='ident'>V4</span>(<span class='ident'>transmute</span>(<span class='op'>*</span>(<span class='ident'>addr</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>libc</span>::<span class='ident'>sockaddr_in</span>)))),
-			<span class='ident'>libc</span>::<span class='ident'>AF_INET6</span> <span class='kw'>if</span> <span class='ident'>len</span> <span class='op'>&gt;=</span> <span class='ident'>size_of</span>::<span class='op'>&lt;</span><span class='ident'>libc</span>::<span class='ident'>sockaddr_in6</span><span class='op'>&gt;</span>() <span class='kw'>as</span> <span class='ident'>libc</span>::<span class='ident'>socklen_t</span> <span class='op'>=&gt;</span> <span class='prelude-val'>Ok</span>(<span class='ident'>SocketAddr</span>::<span class='ident'>V6</span>(<span class='ident'>transmute</span>(<span class='op'>*</span>(<span class='ident'>addr</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>libc</span>::<span class='ident'>sockaddr_in6</span>)))),
-			_ <span class='op'>=&gt;</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>new</span>(<span class='ident'>ErrorKind</span>::<span class='ident'>InvalidInput</span>, <span class='string'>&quot;Cannot get peer socket address&quot;</span>))
+			<span class='ident'>AF_INET</span> <span class='kw'>if</span> <span class='ident'>len</span> <span class='op'>&gt;=</span> <span class='ident'>size_of</span>::<span class='op'>&lt;</span><span class='ident'>sockaddr_in</span><span class='op'>&gt;</span>() <span class='kw'>as</span> <span class='ident'>socklen_t</span> <span class='op'>=&gt;</span> <span class='prelude-val'>Ok</span>(<span class='ident'>SocketAddr</span>::<span class='ident'>V4</span>(<span class='ident'>transmute</span>(<span class='op'>*</span>(<span class='ident'>addr</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>sockaddr_in</span>)))),
+			<span class='ident'>AF_INET6</span> <span class='kw'>if</span> <span class='ident'>len</span> <span class='op'>&gt;=</span> <span class='ident'>size_of</span>::<span class='op'>&lt;</span><span class='ident'>sockaddr_in6</span><span class='op'>&gt;</span>() <span class='kw'>as</span> <span class='ident'>socklen_t</span> <span class='op'>=&gt;</span> <span class='prelude-val'>Ok</span>(<span class='ident'>SocketAddr</span>::<span class='ident'>V6</span>(<span class='ident'>transmute</span>(<span class='op'>*</span>(<span class='ident'>addr</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>sockaddr_in6</span>)))),
+			_ <span class='op'>=&gt;</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>new</span>(<span class='ident'>ErrorKind</span>::<span class='ident'>InvalidInput</span>, <span class='string'>&quot;Invalid socket address&quot;</span>))
 		};
 	}
-	
-	<span class='kw'>fn</span> <span class='ident'>as_ptr</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>libc</span>::<span class='ident'>sockaddr</span> {
+
+	<span class='kw'>fn</span> <span class='ident'>as_ptr</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>sockaddr</span> {
 		<span class='kw'>return</span> <span class='kw'>match</span> <span class='op'>*</span><span class='self'>self</span> {
 			<span class='ident'>SocketAddr</span>::<span class='ident'>V4</span>(<span class='kw-2'>ref</span> <span class='ident'>a</span>) <span class='op'>=&gt;</span> <span class='kw'>unsafe</span> { <span class='ident'>transmute</span>(<span class='ident'>a</span>) },
 			<span class='ident'>SocketAddr</span>::<span class='ident'>V6</span>(<span class='kw-2'>ref</span> <span class='ident'>a</span>) <span class='op'>=&gt;</span> <span class='kw'>unsafe</span> { <span class='ident'>transmute</span>(<span class='ident'>a</span>) }
 		};
 	}
-	
-	<span class='kw'>fn</span> <span class='ident'>as_mut_ptr</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>libc</span>::<span class='ident'>sockaddr</span> {
+
+	<span class='kw'>fn</span> <span class='ident'>as_mut_ptr</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>sockaddr</span> {
 		<span class='kw'>return</span> <span class='kw'>match</span> <span class='op'>*</span><span class='self'>self</span> {
 			<span class='ident'>SocketAddr</span>::<span class='ident'>V4</span>(<span class='kw-2'>ref</span> <span class='kw-2'>mut</span> <span class='ident'>a</span>) <span class='op'>=&gt;</span> <span class='kw'>unsafe</span> { <span class='ident'>transmute</span>(<span class='ident'>a</span>) },
 			<span class='ident'>SocketAddr</span>::<span class='ident'>V6</span>(<span class='kw-2'>ref</span> <span class='kw-2'>mut</span> <span class='ident'>a</span>) <span class='op'>=&gt;</span> <span class='kw'>unsafe</span> { <span class='ident'>transmute</span>(<span class='ident'>a</span>) }
 		};
 	}
-	
+
 	<span class='kw'>fn</span> <span class='ident'>from_addr</span><span class='op'>&lt;</span><span class='ident'>A</span>: <span class='ident'>ToSocketAddrs</span><span class='op'>&gt;</span>(<span class='ident'>address</span>: <span class='ident'>A</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>SocketAddr</span><span class='op'>&gt;</span> {
 		<span class='kw'>return</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>address</span>.<span class='ident'>to_socket_addrs</span>().<span class='ident'>or</span>(<span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>new</span>(<span class='ident'>ErrorKind</span>::<span class='ident'>InvalidInput</span>, <span class='string'>&quot;Address is not valid&quot;</span>))))
 								.<span class='ident'>next</span>().<span class='ident'>ok_or</span>(<span class='ident'>Error</span>::<span class='ident'>new</span>(<span class='ident'>ErrorKind</span>::<span class='ident'>InvalidInput</span>, <span class='string'>&quot;Address is not valid&quot;</span>));
@@ -671,63 +706,26 @@
 	<span class='doccomment'>/// Create a new SCTP socket</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='ident'>family</span>: <span class='ident'>libc</span>::<span class='ident'>c_int</span>, <span class='ident'>sock_type</span>: <span class='ident'>libc</span>::<span class='ident'>c_int</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>SctpSocket</span><span class='op'>&gt;</span> {
 		<span class='kw'>unsafe</span> {
-			<span class='kw'>return</span> <span class='prelude-val'>Ok</span>(<span class='ident'>SctpSocket</span>(<span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>check_socket</span>(<span class='ident'>libc</span>::<span class='ident'>socket</span>(<span class='ident'>family</span>, <span class='ident'>sock_type</span>, <span class='ident'>sctp_sys</span>::<span class='ident'>IPPROTO_SCTP</span>)))));
+			<span class='kw'>return</span> <span class='prelude-val'>Ok</span>(<span class='ident'>SctpSocket</span>(<span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>check_socket</span>(<span class='ident'>socket</span>(<span class='ident'>family</span>, <span class='ident'>sock_type</span>, <span class='ident'>sctp_sys</span>::<span class='ident'>IPPROTO_SCTP</span>)))));
 		}
 	}
-	
+
 	<span class='doccomment'>/// Connect the socket to `address`</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>connect</span><span class='op'>&lt;</span><span class='ident'>A</span>: <span class='ident'>ToSocketAddrs</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>address</span>: <span class='ident'>A</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
 		<span class='kw'>let</span> <span class='ident'>raw_addr</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>SocketAddr</span>::<span class='ident'>from_addr</span>(<span class='kw-2'>&amp;</span><span class='ident'>address</span>));
 		<span class='kw'>unsafe</span> {
-			<span class='kw'>return</span> <span class='kw'>match</span> <span class='ident'>libc</span>::<span class='ident'>connect</span>(<span class='self'>self</span>.<span class='number'>0</span>, <span class='ident'>raw_addr</span>.<span class='ident'>as_ptr</span>(), <span class='ident'>raw_addr</span>.<span class='ident'>addr_len</span>()) {
+			<span class='kw'>return</span> <span class='kw'>match</span> <span class='ident'>connect</span>(<span class='self'>self</span>.<span class='number'>0</span>, <span class='ident'>raw_addr</span>.<span class='ident'>as_ptr</span>(), <span class='ident'>raw_addr</span>.<span class='ident'>addr_len</span>()) {
 				<span class='number'>0</span> <span class='op'>=&gt;</span> <span class='prelude-val'>Ok</span>(()),
 				_ <span class='op'>=&gt;</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>last_os_error</span>())
 			};
 		}
 	}
-	
+
 	<span class='doccomment'>/// Connect the socket to multiple addresses</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>connectx</span><span class='op'>&lt;</span><span class='ident'>A</span>: <span class='ident'>ToSocketAddrs</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>addresses</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>A</span>]) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>sctp_sys</span>::<span class='ident'>sctp_assoc_t</span><span class='op'>&gt;</span> {
 		<span class='kw'>if</span> <span class='ident'>addresses</span>.<span class='ident'>len</span>() <span class='op'>==</span> <span class='number'>0</span> { <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>new</span>(<span class='ident'>ErrorKind</span>::<span class='ident'>InvalidInput</span>, <span class='string'>&quot;No addresses given&quot;</span>)); }
 		<span class='kw'>unsafe</span> {
-			<span class='kw'>let</span> <span class='ident'>buf</span>: <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>u8</span> <span class='op'>=</span> <span class='ident'>libc</span>::<span class='ident'>malloc</span>((<span class='ident'>addresses</span>.<span class='ident'>len</span>() <span class='op'>*</span> <span class='ident'>size_of</span>::<span class='op'>&lt;</span><span class='ident'>libc</span>::<span class='ident'>sockaddr_in6</span><span class='op'>&gt;</span>()) <span class='kw'>as</span> <span class='ident'>u64</span>) <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>u8</span>;
-			<span class='kw'>if</span> <span class='ident'>buf</span>.<span class='ident'>is_null</span>() {
-				<span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>new</span>(<span class='ident'>ErrorKind</span>::<span class='ident'>Other</span>, <span class='string'>&quot;Out of memory&quot;</span>));
-			}
-			<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>offset</span> <span class='op'>=</span> <span class='number'>0isize</span>;
-			<span class='kw'>for</span> <span class='ident'>address</span> <span class='kw'>in</span> <span class='ident'>addresses</span> {
-				<span class='kw'>let</span> <span class='ident'>raw</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>SocketAddr</span>::<span class='ident'>from_addr</span>(<span class='ident'>address</span>));
-				<span class='kw'>let</span> <span class='ident'>len</span> <span class='op'>=</span> <span class='ident'>raw</span>.<span class='ident'>addr_len</span>();
-				<span class='ident'>std</span>::<span class='ident'>ptr</span>::<span class='ident'>copy_nonoverlapping</span>(<span class='ident'>raw</span>.<span class='ident'>as_ptr</span>() <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>u8</span>, <span class='ident'>buf</span>.<span class='ident'>offset</span>(<span class='ident'>offset</span>), <span class='ident'>len</span> <span class='kw'>as</span> <span class='ident'>usize</span>);
-				<span class='ident'>offset</span> <span class='op'>+=</span> <span class='ident'>len</span> <span class='kw'>as</span> <span class='ident'>isize</span>;
-			}
-			
-			<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>assoc</span>: <span class='ident'>sctp_sys</span>::<span class='ident'>sctp_assoc_t</span> <span class='op'>=</span> <span class='number'>0</span>;
-			<span class='kw'>let</span> <span class='ident'>ret</span> <span class='op'>=</span> <span class='kw'>match</span> <span class='ident'>sctp_sys</span>::<span class='ident'>sctp_connectx</span>(<span class='self'>self</span>.<span class='number'>0</span>, <span class='ident'>buf</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>libc</span>::<span class='ident'>sockaddr</span>, <span class='ident'>addresses</span>.<span class='ident'>len</span>() <span class='kw'>as</span> <span class='ident'>i32</span>, <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>assoc</span>) {
-				<span class='number'>0</span> <span class='op'>=&gt;</span> <span class='prelude-val'>Ok</span>(<span class='ident'>assoc</span>),
-				_ <span class='op'>=&gt;</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>last_os_error</span>()),
-			};
-			<span class='ident'>libc</span>::<span class='ident'>free</span>(<span class='ident'>buf</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>libc</span>::<span class='ident'>c_void</span>);
-			<span class='kw'>return</span> <span class='ident'>ret</span>;
-		}
-	}
-	
-	<span class='doccomment'>/// Bind the socket to a single address</span>
-	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>bind</span><span class='op'>&lt;</span><span class='ident'>A</span>: <span class='ident'>ToSocketAddrs</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>address</span>: <span class='ident'>A</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
-		<span class='kw'>let</span> <span class='ident'>raw_addr</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>SocketAddr</span>::<span class='ident'>from_addr</span>(<span class='kw-2'>&amp;</span><span class='ident'>address</span>));
-		<span class='kw'>unsafe</span> {
-			<span class='kw'>return</span> <span class='kw'>match</span> <span class='ident'>libc</span>::<span class='ident'>bind</span>(<span class='self'>self</span>.<span class='number'>0</span>, <span class='ident'>raw_addr</span>.<span class='ident'>as_ptr</span>(), <span class='ident'>raw_addr</span>.<span class='ident'>addr_len</span>()) {
-				<span class='number'>0</span> <span class='op'>=&gt;</span> <span class='prelude-val'>Ok</span>(()),
-				_ <span class='op'>=&gt;</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>last_os_error</span>())
-			};
-		}
-	}
-	
-	<span class='doccomment'>/// Bind the socket on multiple addresses</span>
-	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>bindx</span><span class='op'>&lt;</span><span class='ident'>A</span>: <span class='ident'>ToSocketAddrs</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>addresses</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>A</span>], <span class='ident'>op</span>: <span class='ident'>BindOp</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
-		<span class='kw'>if</span> <span class='ident'>addresses</span>.<span class='ident'>len</span>() <span class='op'>==</span> <span class='number'>0</span> { <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>new</span>(<span class='ident'>ErrorKind</span>::<span class='ident'>InvalidInput</span>, <span class='string'>&quot;No addresses given&quot;</span>)); }
-		<span class='kw'>unsafe</span> {
-			<span class='kw'>let</span> <span class='ident'>buf</span>: <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>u8</span> <span class='op'>=</span> <span class='ident'>libc</span>::<span class='ident'>malloc</span>((<span class='ident'>addresses</span>.<span class='ident'>len</span>() <span class='op'>*</span> <span class='ident'>size_of</span>::<span class='op'>&lt;</span><span class='ident'>libc</span>::<span class='ident'>sockaddr_in6</span><span class='op'>&gt;</span>()) <span class='kw'>as</span> <span class='ident'>u64</span>) <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>u8</span>;
+			<span class='kw'>let</span> <span class='ident'>buf</span>: <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>u8</span> <span class='op'>=</span> <span class='ident'>libc</span>::<span class='ident'>malloc</span>((<span class='ident'>addresses</span>.<span class='ident'>len</span>() <span class='op'>*</span> <span class='ident'>size_of</span>::<span class='op'>&lt;</span><span class='ident'>sockaddr_in6</span><span class='op'>&gt;</span>()) <span class='kw'>as</span> <span class='ident'>libc</span>::<span class='ident'>size_t</span>) <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>u8</span>;
 			<span class='kw'>if</span> <span class='ident'>buf</span>.<span class='ident'>is_null</span>() {
 				<span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>new</span>(<span class='ident'>ErrorKind</span>::<span class='ident'>Other</span>, <span class='string'>&quot;Out of memory&quot;</span>));
 			}
@@ -739,7 +737,44 @@
 				<span class='ident'>offset</span> <span class='op'>+=</span> <span class='ident'>len</span> <span class='kw'>as</span> <span class='ident'>isize</span>;
 			}
 
-			<span class='kw'>let</span> <span class='ident'>ret</span> <span class='op'>=</span> <span class='kw'>match</span> <span class='ident'>sctp_sys</span>::<span class='ident'>sctp_bindx</span>(<span class='self'>self</span>.<span class='number'>0</span>, <span class='ident'>buf</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>libc</span>::<span class='ident'>sockaddr</span>, <span class='ident'>addresses</span>.<span class='ident'>len</span>() <span class='kw'>as</span> <span class='ident'>i32</span>, <span class='ident'>op</span>.<span class='ident'>flag</span>()) {
+			<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>assoc</span>: <span class='ident'>sctp_sys</span>::<span class='ident'>sctp_assoc_t</span> <span class='op'>=</span> <span class='number'>0</span>;
+			<span class='kw'>let</span> <span class='ident'>ret</span> <span class='op'>=</span> <span class='kw'>match</span> <span class='ident'>sctp_sys</span>::<span class='ident'>sctp_connectx</span>(<span class='self'>self</span>.<span class='number'>0</span>, <span class='ident'>buf</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>sockaddr</span>, <span class='ident'>addresses</span>.<span class='ident'>len</span>() <span class='kw'>as</span> <span class='ident'>i32</span>, <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>assoc</span>) {
+				<span class='number'>0</span> <span class='op'>=&gt;</span> <span class='prelude-val'>Ok</span>(<span class='ident'>assoc</span>),
+				_ <span class='op'>=&gt;</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>last_os_error</span>()),
+			};
+			<span class='ident'>libc</span>::<span class='ident'>free</span>(<span class='ident'>buf</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>libc</span>::<span class='ident'>c_void</span>);
+			<span class='kw'>return</span> <span class='ident'>ret</span>;
+		}
+	}
+
+	<span class='doccomment'>/// Bind the socket to a single address</span>
+	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>bind</span><span class='op'>&lt;</span><span class='ident'>A</span>: <span class='ident'>ToSocketAddrs</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>address</span>: <span class='ident'>A</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
+		<span class='kw'>let</span> <span class='ident'>raw_addr</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>SocketAddr</span>::<span class='ident'>from_addr</span>(<span class='kw-2'>&amp;</span><span class='ident'>address</span>));
+		<span class='kw'>unsafe</span> {
+			<span class='kw'>return</span> <span class='kw'>match</span> <span class='ident'>bind</span>(<span class='self'>self</span>.<span class='number'>0</span>, <span class='ident'>raw_addr</span>.<span class='ident'>as_ptr</span>(), <span class='ident'>raw_addr</span>.<span class='ident'>addr_len</span>()) {
+				<span class='number'>0</span> <span class='op'>=&gt;</span> <span class='prelude-val'>Ok</span>(()),
+				_ <span class='op'>=&gt;</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>last_os_error</span>())
+			};
+		}
+	}
+
+	<span class='doccomment'>/// Bind the socket on multiple addresses</span>
+	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>bindx</span><span class='op'>&lt;</span><span class='ident'>A</span>: <span class='ident'>ToSocketAddrs</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>addresses</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>A</span>], <span class='ident'>op</span>: <span class='ident'>BindOp</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
+		<span class='kw'>if</span> <span class='ident'>addresses</span>.<span class='ident'>len</span>() <span class='op'>==</span> <span class='number'>0</span> { <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>new</span>(<span class='ident'>ErrorKind</span>::<span class='ident'>InvalidInput</span>, <span class='string'>&quot;No addresses given&quot;</span>)); }
+		<span class='kw'>unsafe</span> {
+			<span class='kw'>let</span> <span class='ident'>buf</span>: <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>u8</span> <span class='op'>=</span> <span class='ident'>libc</span>::<span class='ident'>malloc</span>((<span class='ident'>addresses</span>.<span class='ident'>len</span>() <span class='op'>*</span> <span class='ident'>size_of</span>::<span class='op'>&lt;</span><span class='ident'>sockaddr_in6</span><span class='op'>&gt;</span>()) <span class='kw'>as</span> <span class='ident'>libc</span>::<span class='ident'>size_t</span>) <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>u8</span>;
+			<span class='kw'>if</span> <span class='ident'>buf</span>.<span class='ident'>is_null</span>() {
+				<span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>new</span>(<span class='ident'>ErrorKind</span>::<span class='ident'>Other</span>, <span class='string'>&quot;Out of memory&quot;</span>));
+			}
+			<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>offset</span> <span class='op'>=</span> <span class='number'>0isize</span>;
+			<span class='kw'>for</span> <span class='ident'>address</span> <span class='kw'>in</span> <span class='ident'>addresses</span> {
+				<span class='kw'>let</span> <span class='ident'>raw</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>SocketAddr</span>::<span class='ident'>from_addr</span>(<span class='ident'>address</span>));
+				<span class='kw'>let</span> <span class='ident'>len</span> <span class='op'>=</span> <span class='ident'>raw</span>.<span class='ident'>addr_len</span>();
+				<span class='ident'>std</span>::<span class='ident'>ptr</span>::<span class='ident'>copy_nonoverlapping</span>(<span class='ident'>raw</span>.<span class='ident'>as_ptr</span>() <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>u8</span>, <span class='ident'>buf</span>.<span class='ident'>offset</span>(<span class='ident'>offset</span>), <span class='ident'>len</span> <span class='kw'>as</span> <span class='ident'>usize</span>);
+				<span class='ident'>offset</span> <span class='op'>+=</span> <span class='ident'>len</span> <span class='kw'>as</span> <span class='ident'>isize</span>;
+			}
+
+			<span class='kw'>let</span> <span class='ident'>ret</span> <span class='op'>=</span> <span class='kw'>match</span> <span class='ident'>sctp_sys</span>::<span class='ident'>sctp_bindx</span>(<span class='self'>self</span>.<span class='number'>0</span>, <span class='ident'>buf</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>sockaddr</span>, <span class='ident'>addresses</span>.<span class='ident'>len</span>() <span class='kw'>as</span> <span class='ident'>i32</span>, <span class='ident'>op</span>.<span class='ident'>flag</span>()) {
 				<span class='number'>0</span> <span class='op'>=&gt;</span> <span class='prelude-val'>Ok</span>(()),
 				_ <span class='op'>=&gt;</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>last_os_error</span>())
 			};
@@ -747,98 +782,98 @@
 			<span class='kw'>return</span> <span class='ident'>ret</span>;
 		}
 	}
-	
+
 	<span class='doccomment'>/// Listen</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>listen</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>backlog</span>: <span class='ident'>libc</span>::<span class='ident'>c_int</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
 		<span class='kw'>unsafe</span> {
-			<span class='kw'>return</span> <span class='kw'>match</span> <span class='ident'>libc</span>::<span class='ident'>listen</span>(<span class='self'>self</span>.<span class='number'>0</span>, <span class='ident'>backlog</span>) {
+			<span class='kw'>return</span> <span class='kw'>match</span> <span class='ident'>listen</span>(<span class='self'>self</span>.<span class='number'>0</span>, <span class='ident'>backlog</span>) {
 				<span class='number'>0</span> <span class='op'>=&gt;</span> <span class='prelude-val'>Ok</span>(()),
 				_ <span class='op'>=&gt;</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>last_os_error</span>())
 			};
 		}
 	}
-	
+
 	<span class='doccomment'>/// Accept connection to this socket</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>accept</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>(<span class='ident'>SctpSocket</span>, <span class='ident'>SocketAddr</span>)<span class='op'>&gt;</span> {
-		<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>addr</span>: <span class='ident'>libc</span>::<span class='ident'>sockaddr_in6</span> <span class='op'>=</span> <span class='kw'>unsafe</span> { <span class='ident'>std</span>::<span class='ident'>mem</span>::<span class='ident'>zeroed</span>() };
-		<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>len</span>: <span class='ident'>libc</span>::<span class='ident'>socklen_t</span> <span class='op'>=</span> <span class='ident'>size_of</span>::<span class='op'>&lt;</span><span class='ident'>libc</span>::<span class='ident'>sockaddr_in6</span><span class='op'>&gt;</span>() <span class='kw'>as</span> <span class='ident'>libc</span>::<span class='ident'>socklen_t</span>;
+		<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>addr</span>: <span class='ident'>sockaddr_in6</span> <span class='op'>=</span> <span class='kw'>unsafe</span> { <span class='ident'>std</span>::<span class='ident'>mem</span>::<span class='ident'>zeroed</span>() };
+		<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>len</span>: <span class='ident'>socklen_t</span> <span class='op'>=</span> <span class='ident'>size_of</span>::<span class='op'>&lt;</span><span class='ident'>sockaddr_in6</span><span class='op'>&gt;</span>() <span class='kw'>as</span> <span class='ident'>socklen_t</span>;
 		<span class='kw'>unsafe</span> {
-			<span class='kw'>let</span> <span class='ident'>addr_ptr</span>: <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>libc</span>::<span class='ident'>sockaddr</span> <span class='op'>=</span> <span class='ident'>transmute</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>addr</span>);
-			<span class='kw'>let</span> <span class='ident'>sock</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>check_socket</span>(<span class='ident'>libc</span>::<span class='ident'>accept</span>(<span class='self'>self</span>.<span class='number'>0</span>, <span class='ident'>addr_ptr</span>, <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>len</span>)));
+			<span class='kw'>let</span> <span class='ident'>addr_ptr</span>: <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>sockaddr</span> <span class='op'>=</span> <span class='ident'>transmute</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>addr</span>);
+			<span class='kw'>let</span> <span class='ident'>sock</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>check_socket</span>(<span class='ident'>accept</span>(<span class='self'>self</span>.<span class='number'>0</span>, <span class='ident'>addr_ptr</span>, <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>len</span>)));
 			<span class='kw'>let</span> <span class='ident'>addr</span> <span class='op'>=</span> <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>SocketAddr</span>::<span class='ident'>from_raw_ptr</span>(<span class='ident'>addr_ptr</span>, <span class='ident'>len</span>));
 			<span class='kw'>return</span> <span class='prelude-val'>Ok</span>((<span class='ident'>SctpSocket</span>(<span class='ident'>sock</span>), <span class='ident'>addr</span>));
 		}
 	}
-	
+
 	<span class='kw'>fn</span> <span class='ident'>addrs</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>id</span>: <span class='ident'>sctp_sys</span>::<span class='ident'>sctp_assoc_t</span>, <span class='ident'>what</span>: <span class='ident'>SctpAddrType</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>SocketAddr</span><span class='op'>&gt;&gt;</span> {
 		<span class='kw'>unsafe</span> {
 			<span class='kw'>let</span> <span class='kw-2'>mut</span>	<span class='ident'>addrs</span>: <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>u8</span> <span class='op'>=</span> <span class='ident'>std</span>::<span class='ident'>ptr</span>::<span class='ident'>null_mut</span>();
 			<span class='kw'>let</span> <span class='ident'>len</span> <span class='op'>=</span> <span class='ident'>what</span>.<span class='ident'>get</span>(<span class='self'>self</span>.<span class='number'>0</span>, <span class='ident'>id</span>, <span class='ident'>transmute</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>addrs</span>));
-			<span class='kw'>if</span> <span class='ident'>len</span> <span class='op'>&lt;</span> <span class='number'>0</span> { <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>new</span>(<span class='ident'>ErrorKind</span>::<span class='ident'>Other</span>, <span class='string'>&quot;Cannot retrieve local addresses&quot;</span>)); }
+			<span class='kw'>if</span> <span class='ident'>len</span> <span class='op'>&lt;</span> <span class='number'>0</span> { <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>new</span>(<span class='ident'>ErrorKind</span>::<span class='ident'>Other</span>, <span class='string'>&quot;Cannot retrieve addresses&quot;</span>)); }
 			<span class='kw'>if</span> <span class='ident'>len</span> <span class='op'>==</span> <span class='number'>0</span> { <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>new</span>(<span class='ident'>ErrorKind</span>::<span class='ident'>AddrNotAvailable</span>, <span class='string'>&quot;Socket is unbound&quot;</span>)); }
-			
+
 			<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>vec</span> <span class='op'>=</span> <span class='ident'>Vec</span>::<span class='ident'>with_capacity</span>(<span class='ident'>len</span> <span class='kw'>as</span> <span class='ident'>usize</span>);
 			<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>offset</span> <span class='op'>=</span> <span class='number'>0</span>;
 			<span class='kw'>for</span> _ <span class='kw'>in</span> <span class='number'>0</span>..<span class='ident'>len</span> {
-				<span class='kw'>let</span> <span class='ident'>sockaddr</span> <span class='op'>=</span> <span class='ident'>addrs</span>.<span class='ident'>offset</span>(<span class='ident'>offset</span>) <span class='kw'>as</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>libc</span>::<span class='ident'>sockaddr</span>;
+				<span class='kw'>let</span> <span class='ident'>sockaddr</span> <span class='op'>=</span> <span class='ident'>addrs</span>.<span class='ident'>offset</span>(<span class='ident'>offset</span>) <span class='kw'>as</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>sockaddr</span>;
 				<span class='kw'>let</span> <span class='ident'>len</span> <span class='op'>=</span> <span class='kw'>match</span> (<span class='op'>*</span><span class='ident'>sockaddr</span>).<span class='ident'>sa_family</span> <span class='kw'>as</span> <span class='ident'>i32</span> {
-					<span class='ident'>libc</span>::<span class='ident'>AF_INET</span> <span class='op'>=&gt;</span> <span class='ident'>size_of</span>::<span class='op'>&lt;</span><span class='ident'>libc</span>::<span class='ident'>sockaddr_in</span><span class='op'>&gt;</span>(),
-					<span class='ident'>libc</span>::<span class='ident'>AF_INET6</span> <span class='op'>=&gt;</span> <span class='ident'>size_of</span>::<span class='op'>&lt;</span><span class='ident'>libc</span>::<span class='ident'>sockaddr_in6</span><span class='op'>&gt;</span>(),
+					<span class='ident'>AF_INET</span> <span class='op'>=&gt;</span> <span class='ident'>size_of</span>::<span class='op'>&lt;</span><span class='ident'>sockaddr_in</span><span class='op'>&gt;</span>(),
+					<span class='ident'>AF_INET6</span> <span class='op'>=&gt;</span> <span class='ident'>size_of</span>::<span class='op'>&lt;</span><span class='ident'>sockaddr_in6</span><span class='op'>&gt;</span>(),
 					<span class='ident'>f</span> <span class='op'>=&gt;</span> {
-						<span class='ident'>what</span>.<span class='ident'>free</span>(<span class='ident'>addrs</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>libc</span>::<span class='ident'>sockaddr</span>);
+						<span class='ident'>what</span>.<span class='ident'>free</span>(<span class='ident'>addrs</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>sockaddr</span>);
 						<span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>new</span>(<span class='ident'>ErrorKind</span>::<span class='ident'>Other</span>, <span class='macro'>format</span><span class='macro'>!</span>(<span class='string'>&quot;Unsupported address family : {}&quot;</span>, <span class='ident'>f</span>)));
 					}
-				} <span class='kw'>as</span> <span class='ident'>libc</span>::<span class='ident'>socklen_t</span>;
+				} <span class='kw'>as</span> <span class='ident'>socklen_t</span>;
 				<span class='ident'>vec</span>.<span class='ident'>push</span>(<span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>SocketAddr</span>::<span class='ident'>from_raw_ptr</span>(<span class='ident'>sockaddr</span>, <span class='ident'>len</span>)));
 				<span class='ident'>offset</span> <span class='op'>+=</span> <span class='ident'>len</span> <span class='kw'>as</span> <span class='ident'>isize</span>;
 			}
-			<span class='ident'>what</span>.<span class='ident'>free</span>(<span class='ident'>addrs</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>libc</span>::<span class='ident'>sockaddr</span>);
+			<span class='ident'>what</span>.<span class='ident'>free</span>(<span class='ident'>addrs</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>sockaddr</span>);
 			<span class='kw'>return</span> <span class='prelude-val'>Ok</span>(<span class='ident'>vec</span>);
 		}
 	}
-	
+
 	<span class='doccomment'>/// List socket&#39;s local addresses</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>local_addrs</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>id</span>: <span class='ident'>sctp_sys</span>::<span class='ident'>sctp_assoc_t</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>SocketAddr</span><span class='op'>&gt;&gt;</span> {
 		<span class='kw'>return</span> <span class='self'>self</span>.<span class='ident'>addrs</span>(<span class='ident'>id</span>, <span class='ident'>SctpAddrType</span>::<span class='ident'>Local</span>);
 	}
-	
+
 	<span class='doccomment'>/// Get peer addresses for a connected socket or a given association</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>peer_addrs</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>id</span>: <span class='ident'>sctp_sys</span>::<span class='ident'>sctp_assoc_t</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>SocketAddr</span><span class='op'>&gt;&gt;</span> {
 		<span class='kw'>return</span> <span class='self'>self</span>.<span class='ident'>addrs</span>(<span class='ident'>id</span>, <span class='ident'>SctpAddrType</span>::<span class='ident'>Peer</span>);
 	}
-	
+
 	<span class='doccomment'>/// Receive data in TCP style. Only works for a connected one to one socket</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>recv</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> [<span class='ident'>u8</span>]) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span> {
 		<span class='kw'>unsafe</span> {
 			<span class='kw'>let</span> <span class='ident'>len</span> <span class='op'>=</span> <span class='ident'>buf</span>.<span class='ident'>len</span>() <span class='kw'>as</span> <span class='ident'>RWlen</span>;
-			<span class='kw'>return</span> <span class='kw'>match</span> <span class='ident'>libc</span>::<span class='ident'>recv</span>(<span class='self'>self</span>.<span class='number'>0</span>, <span class='ident'>buf</span>.<span class='ident'>as_mut_ptr</span>() <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>libc</span>::<span class='ident'>c_void</span>, <span class='ident'>len</span>, <span class='number'>0</span>) {
+			<span class='kw'>return</span> <span class='kw'>match</span> <span class='ident'>recv</span>(<span class='self'>self</span>.<span class='number'>0</span>, <span class='ident'>transmute</span>(<span class='ident'>buf</span>.<span class='ident'>as_mut_ptr</span>()), <span class='ident'>len</span>, <span class='number'>0</span>) {
 				<span class='ident'>res</span> <span class='kw'>if</span> <span class='ident'>res</span> <span class='op'>&gt;=</span> <span class='number'>0</span> <span class='op'>=&gt;</span> <span class='prelude-val'>Ok</span>(<span class='ident'>res</span> <span class='kw'>as</span> <span class='ident'>usize</span>),
 				_ <span class='op'>=&gt;</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>last_os_error</span>())
 			};
 		}
 	}
-	
+
 	<span class='doccomment'>/// Send data in TCP style. Only works for a connected one to one socket</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>send</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>u8</span>]) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span> {
 		<span class='kw'>unsafe</span> {
 			<span class='kw'>let</span> <span class='ident'>len</span> <span class='op'>=</span> <span class='ident'>buf</span>.<span class='ident'>len</span>() <span class='kw'>as</span> <span class='ident'>RWlen</span>;
-			<span class='kw'>return</span> <span class='kw'>match</span> <span class='ident'>libc</span>::<span class='ident'>send</span>(<span class='self'>self</span>.<span class='number'>0</span>, <span class='ident'>buf</span>.<span class='ident'>as_ptr</span>() <span class='kw'>as</span> <span class='op'>*</span><span class='kw'>const</span> <span class='ident'>libc</span>::<span class='ident'>c_void</span>, <span class='ident'>len</span>, <span class='number'>0</span>) {
+			<span class='kw'>return</span> <span class='kw'>match</span> <span class='ident'>send</span>(<span class='self'>self</span>.<span class='number'>0</span>, <span class='ident'>transmute</span>(<span class='ident'>buf</span>.<span class='ident'>as_ptr</span>()), <span class='ident'>len</span>, <span class='number'>0</span>) {
 				<span class='ident'>res</span> <span class='kw'>if</span> <span class='ident'>res</span> <span class='op'>&gt;=</span> <span class='number'>0</span> <span class='op'>=&gt;</span> <span class='prelude-val'>Ok</span>(<span class='ident'>res</span> <span class='kw'>as</span> <span class='ident'>usize</span>),
 				_ <span class='op'>=&gt;</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>last_os_error</span>())
 			};
 		}
 	}
-	
+
 	<span class='doccomment'>/// Wait for data to be received. On success, returns a triplet containing</span>
 	<span class='doccomment'>/// the quantity of bytes received, the sctp stream id on which data were received, and</span>
 	<span class='doccomment'>/// the socket address used by the peer to send the data</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>recvmsg</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>msg</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> [<span class='ident'>u8</span>]) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>(<span class='ident'>usize</span>, <span class='ident'>u16</span>, <span class='ident'>SocketAddr</span>)<span class='op'>&gt;</span> {
 		<span class='kw'>let</span> <span class='ident'>len</span> <span class='op'>=</span> <span class='ident'>msg</span>.<span class='ident'>len</span>() <span class='kw'>as</span> <span class='ident'>libc</span>::<span class='ident'>size_t</span>;
-		<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>addr</span>: <span class='ident'>libc</span>::<span class='ident'>sockaddr_in6</span> <span class='op'>=</span> <span class='kw'>unsafe</span> { <span class='ident'>std</span>::<span class='ident'>mem</span>::<span class='ident'>zeroed</span>() };
-		<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>addr_len</span>: <span class='ident'>libc</span>::<span class='ident'>socklen_t</span> <span class='op'>=</span> <span class='ident'>size_of</span>::<span class='op'>&lt;</span><span class='ident'>libc</span>::<span class='ident'>sockaddr_in6</span><span class='op'>&gt;</span>() <span class='kw'>as</span> <span class='ident'>libc</span>::<span class='ident'>socklen_t</span>;
+		<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>addr</span>: <span class='ident'>sockaddr_in6</span> <span class='op'>=</span> <span class='kw'>unsafe</span> { <span class='ident'>std</span>::<span class='ident'>mem</span>::<span class='ident'>zeroed</span>() };
+		<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>addr_len</span>: <span class='ident'>socklen_t</span> <span class='op'>=</span> <span class='ident'>size_of</span>::<span class='op'>&lt;</span><span class='ident'>sockaddr_in6</span><span class='op'>&gt;</span>() <span class='kw'>as</span> <span class='ident'>socklen_t</span>;
 		<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>flags</span>: <span class='ident'>libc</span>::<span class='ident'>c_int</span> <span class='op'>=</span> <span class='number'>0</span>;
 		<span class='kw'>unsafe</span> {
-			<span class='kw'>let</span> <span class='ident'>addr_ptr</span>: <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>libc</span>::<span class='ident'>sockaddr</span> <span class='op'>=</span> <span class='ident'>transmute</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>addr</span>);
+			<span class='kw'>let</span> <span class='ident'>addr_ptr</span>: <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>sockaddr</span> <span class='op'>=</span> <span class='ident'>transmute</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>addr</span>);
 			<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>info</span>: <span class='ident'>sctp_sys</span>::<span class='ident'>sctp_sndrcvinfo</span> <span class='op'>=</span> <span class='ident'>std</span>::<span class='ident'>mem</span>::<span class='ident'>zeroed</span>();
 			<span class='kw'>return</span> <span class='kw'>match</span> <span class='ident'>sctp_sys</span>::<span class='ident'>sctp_recvmsg</span>(<span class='self'>self</span>.<span class='number'>0</span>, <span class='ident'>msg</span>.<span class='ident'>as_mut_ptr</span>() <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>libc</span>::<span class='ident'>c_void</span>, <span class='ident'>len</span>, <span class='ident'>addr_ptr</span>, <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>addr_len</span>, <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>info</span>, <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>flags</span>) {
 				<span class='ident'>res</span> <span class='kw'>if</span> <span class='ident'>res</span> <span class='op'>&gt;</span> <span class='number'>0</span> <span class='op'>=&gt;</span> <span class='prelude-val'>Ok</span>((<span class='ident'>res</span> <span class='kw'>as</span> <span class='ident'>usize</span>, <span class='ident'>info</span>.<span class='ident'>sinfo_stream</span>, <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>SocketAddr</span>::<span class='ident'>from_raw_ptr</span>(<span class='ident'>addr_ptr</span>, <span class='ident'>addr_len</span>)))),
@@ -846,7 +881,7 @@
 			};
 		}
 	}
-	
+
 	<span class='doccomment'>/// Send data in Sctp style, to the provided address (may be `None` if the socket is connected), on the stream `stream`, with the TTL `ttl`.</span>
 	<span class='doccomment'>/// On success, returns the quantity on bytes sent</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>sendmsg</span><span class='op'>&lt;</span><span class='ident'>A</span>: <span class='ident'>ToSocketAddrs</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>msg</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>u8</span>], <span class='ident'>address</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>A</span><span class='op'>&gt;</span>, <span class='ident'>stream</span>: <span class='ident'>u16</span>, <span class='ident'>ttl</span>: <span class='ident'>libc</span>::<span class='ident'>c_ulong</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span> {
@@ -865,54 +900,54 @@
 			};
 		}
 	}
-	
+
 	<span class='doccomment'>/// Shuts down the read, write, or both halves of this connection</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>shutdown</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>how</span>: <span class='ident'>Shutdown</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
 		<span class='kw'>let</span> <span class='ident'>side</span> <span class='op'>=</span> <span class='kw'>match</span> <span class='ident'>how</span> {
-			<span class='ident'>Shutdown</span>::<span class='ident'>Read</span> <span class='op'>=&gt;</span> <span class='ident'>libc</span>::<span class='ident'>SHUT_RD</span>,
-			<span class='ident'>Shutdown</span>::<span class='ident'>Write</span> <span class='op'>=&gt;</span> <span class='ident'>libc</span>::<span class='ident'>SHUT_WR</span>,
-			<span class='ident'>Shutdown</span>::<span class='ident'>Both</span> <span class='op'>=&gt;</span> <span class='ident'>libc</span>::<span class='ident'>SHUT_RDWR</span>
+			<span class='ident'>Shutdown</span>::<span class='ident'>Read</span> <span class='op'>=&gt;</span> <span class='ident'>SHUT_RD</span>,
+			<span class='ident'>Shutdown</span>::<span class='ident'>Write</span> <span class='op'>=&gt;</span> <span class='ident'>SHUT_WR</span>,
+			<span class='ident'>Shutdown</span>::<span class='ident'>Both</span> <span class='op'>=&gt;</span> <span class='ident'>SHUT_RDWR</span>
 		};
-		<span class='kw'>return</span> <span class='kw'>match</span> <span class='kw'>unsafe</span> { <span class='ident'>libc</span>::<span class='ident'>shutdown</span>(<span class='self'>self</span>.<span class='number'>0</span>, <span class='ident'>side</span>) } {
+		<span class='kw'>return</span> <span class='kw'>match</span> <span class='kw'>unsafe</span> { <span class='ident'>shutdown</span>(<span class='self'>self</span>.<span class='number'>0</span>, <span class='ident'>side</span>) } {
 			<span class='number'>0</span> <span class='op'>=&gt;</span> <span class='prelude-val'>Ok</span>(()),
 			_ <span class='op'>=&gt;</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>last_os_error</span>())
 		};
 	}
-	
+
 	<span class='doccomment'>/// Set socket option</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>setsockopt</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>level</span>: <span class='ident'>libc</span>::<span class='ident'>c_int</span>, <span class='ident'>optname</span>: <span class='ident'>libc</span>::<span class='ident'>c_int</span>, <span class='ident'>optval</span>: <span class='kw-2'>&amp;</span><span class='ident'>T</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
 		<span class='kw'>unsafe</span> {
-			<span class='kw'>return</span> <span class='kw'>match</span> <span class='ident'>libc</span>::<span class='ident'>setsockopt</span>(<span class='self'>self</span>.<span class='number'>0</span>, <span class='ident'>level</span>, <span class='ident'>optname</span>, <span class='ident'>transmute</span>(<span class='ident'>optval</span>), <span class='ident'>size_of</span>::<span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>() <span class='kw'>as</span> <span class='ident'>libc</span>::<span class='ident'>socklen_t</span>) {
+			<span class='kw'>return</span> <span class='kw'>match</span> <span class='ident'>setsockopt</span>(<span class='self'>self</span>.<span class='number'>0</span>, <span class='ident'>level</span>, <span class='ident'>optname</span>, <span class='ident'>transmute</span>(<span class='ident'>optval</span>), <span class='ident'>size_of</span>::<span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>() <span class='kw'>as</span> <span class='ident'>socklen_t</span>) {
 				<span class='number'>0</span> <span class='op'>=&gt;</span> <span class='prelude-val'>Ok</span>(()),
 				_ <span class='op'>=&gt;</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>last_os_error</span>())
 			};
 		}
 	}
-	
+
 	<span class='doccomment'>/// Get socket option</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>getsockopt</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>level</span>: <span class='ident'>libc</span>::<span class='ident'>c_int</span>, <span class='ident'>optname</span>: <span class='ident'>libc</span>::<span class='ident'>c_int</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
 		<span class='kw'>unsafe</span> {
 			<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>val</span>: <span class='ident'>T</span> <span class='op'>=</span> <span class='ident'>zeroed</span>();
-			<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>len</span> <span class='op'>=</span> <span class='ident'>size_of</span>::<span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>() <span class='kw'>as</span> <span class='ident'>libc</span>::<span class='ident'>socklen_t</span>;
+			<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>len</span> <span class='op'>=</span> <span class='ident'>size_of</span>::<span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>() <span class='kw'>as</span> <span class='ident'>socklen_t</span>;
 			<span class='kw'>return</span> <span class='kw'>match</span> <span class='ident'>getsockopt</span>(<span class='self'>self</span>.<span class='number'>0</span>, <span class='ident'>level</span>, <span class='ident'>optname</span>, <span class='ident'>transmute</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>val</span>), <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>len</span>) {
 				<span class='number'>0</span> <span class='op'>=&gt;</span> <span class='prelude-val'>Ok</span>(<span class='ident'>val</span>),
 				_ <span class='op'>=&gt;</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>last_os_error</span>())
 			};
 		}
 	}
-	
+
 	<span class='doccomment'>/// Get SCTP socket option</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>sctp_opt_info</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>optname</span>: <span class='ident'>libc</span>::<span class='ident'>c_int</span>, <span class='ident'>assoc</span>: <span class='ident'>sctp_sys</span>::<span class='ident'>sctp_assoc_t</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
 		<span class='kw'>unsafe</span> {
 			<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>val</span>: <span class='ident'>T</span> <span class='op'>=</span> <span class='ident'>zeroed</span>();
-			<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>len</span> <span class='op'>=</span> <span class='ident'>size_of</span>::<span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>() <span class='kw'>as</span> <span class='ident'>libc</span>::<span class='ident'>socklen_t</span>;
+			<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>len</span> <span class='op'>=</span> <span class='ident'>size_of</span>::<span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>() <span class='kw'>as</span> <span class='ident'>socklen_t</span>;
 			<span class='kw'>return</span> <span class='kw'>match</span> <span class='ident'>sctp_sys</span>::<span class='ident'>sctp_opt_info</span>(<span class='self'>self</span>.<span class='number'>0</span>, <span class='ident'>assoc</span>, <span class='ident'>optname</span>, <span class='ident'>transmute</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>val</span>), <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>len</span>) {
 				<span class='number'>0</span> <span class='op'>=&gt;</span> <span class='prelude-val'>Ok</span>(<span class='ident'>val</span>),
 				_ <span class='op'>=&gt;</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>last_os_error</span>())
 			};
 		}
 	}
-	
+
 	<span class='doccomment'>/// Try to clone this socket</span>
 	<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>try_clone</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>SctpSocket</span><span class='op'>&gt;</span> {
 		<span class='kw'>unsafe</span> {
@@ -932,7 +967,7 @@
 	<span class='kw'>fn</span> <span class='ident'>write</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>u8</span>]) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span> {
 		<span class='kw'>return</span> <span class='self'>self</span>.<span class='ident'>send</span>(<span class='ident'>buf</span>);
 	}
-	
+
 	<span class='kw'>fn</span> <span class='ident'>flush</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
 		<span class='kw'>return</span> <span class='prelude-val'>Ok</span>(());
 	}
@@ -941,7 +976,7 @@
 <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span><span class='op'>=</span><span class='string'>&quot;windows&quot;</span>)]</span>
 <span class='kw'>impl</span> <span class='ident'>AsRawHandle</span> <span class='kw'>for</span> <span class='ident'>SctpSocket</span> {
 	<span class='kw'>fn</span> <span class='ident'>as_raw_handle</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>RawHandle</span> {
-		<span class='kw'>return</span> <span class='self'>self</span>.<span class='number'>0</span> <span class='kw'>as</span> <span class='ident'>RawHandle</span>;	
+		<span class='kw'>return</span> <span class='self'>self</span>.<span class='number'>0</span> <span class='kw'>as</span> <span class='ident'>RawHandle</span>;
 	}
 }
 
@@ -955,7 +990,7 @@
 <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>target_os</span><span class='op'>=</span><span class='string'>&quot;linux&quot;</span>)]</span>
 <span class='kw'>impl</span> <span class='ident'>AsRawFd</span> <span class='kw'>for</span> <span class='ident'>SctpSocket</span> {
 	<span class='kw'>fn</span> <span class='ident'>as_raw_fd</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='ident'>RawFd</span> {
-		<span class='kw'>return</span> <span class='self'>self</span>.<span class='number'>0</span>;	
+		<span class='kw'>return</span> <span class='self'>self</span>.<span class='number'>0</span>;
 	}
 }
 
@@ -977,40 +1012,49 @@
 
     <section class="footer"></section>
 
-    <div id="help" class="hidden">
-        <div class="shortcuts">
-            <h1>Keyboard shortcuts</h1>
-            <dl>
-                <dt>?</dt>
-                <dd>Show this help dialog</dd>
-                <dt>S</dt>
-                <dd>Focus the search field</dd>
-                <dt>&larrb;</dt>
-                <dd>Move up in search results</dd>
-                <dt>&rarrb;</dt>
-                <dd>Move down in search results</dd>
-                <dt>&#9166;</dt>
-                <dd>Go to active search result</dd>
-            </dl>
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code>)
+                </p>
+            </div>
         </div>
-        <div class="infos">
-            <h1>Search tricks</h1>
-            <p>
-                Prefix searches with a type followed by a colon (e.g.
-                <code>fn:</code>) to restrict the search to a given type.
-            </p>
-            <p>
-                Accepted types are: <code>fn</code>, <code>mod</code>,
-                <code>struct</code>, <code>enum</code>,
-                <code>trait</code>, <code>typedef</code> (or
-                <code>tdef</code>).
-            </p>
-            <p>
-                Search functions by type signature (e.g.
-                <code>vec -> usize</code>)
-            </p>
-        </div>
-    </div>
+    </aside>
 
     
 
@@ -1022,6 +1066,6 @@
     <script src="../../jquery.js"></script>
     <script src="../../main.js"></script>
     
-    <script async src="../../search-index.js"></script>
+    <script defer src="../../search-index.js"></script>
 </body>
 </html>
