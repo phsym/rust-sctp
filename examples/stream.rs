@@ -5,23 +5,23 @@ use std::io::prelude::*;
 
 fn main() {
 	// Create a new one-to-one stream
-//    match SctpStream::connect("127.0.0.1:3868") {
-	match SctpStream::connectx(&["10.0.2.15:3868", "127.0.0.1:3868"]) {
+    match SctpStream::connect("127.0.0.1:3868") {
+//	match SctpStream::connectx(&["10.0.2.15:3868", "127.0.0.1:3868"]) {
     	Err(e) => println!("{:?}", e.kind()),
     	Ok(mut peer) => {
     		// Set SCTP no delay
     		println!("{}", peer.has_nodelay().unwrap());
     		peer.set_nodelay(true).unwrap();
     		println!("{}", peer.has_nodelay().unwrap());
-    		
+
     		// Set socket send buffer size
     		let oldsize = peer.get_buffer_size(SoDirection::Send).unwrap();
     		peer.set_buffer_size(SoDirection::Send, 4096).unwrap();
     		println!("Set send buffer size to {} (was : {})", peer.get_buffer_size(SoDirection::Send).unwrap(), oldsize);
-    		
+
     		println!("Setting read timeout to 10 s");
     		peer.set_timeout(SoDirection::Receive, 10).unwrap();
-    		
+
     		// Write a message using the io::Write trait
     		peer.write_all("foo bar\n".as_bytes()).unwrap();
     		// Write a message on stream 6

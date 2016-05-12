@@ -1,7 +1,7 @@
 [package]
 
 name = "rust-sctp"
-version = "0.0.4"
+version = "0.0.5"
 description = "High level SCTP networking library"
 repository = "https://github.com/phsym/rust-sctp"
 documentation = "http://phsym.github.io/rust-sctp"

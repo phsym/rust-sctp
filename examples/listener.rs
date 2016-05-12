@@ -2,9 +2,9 @@ extern crate sctp;
 use sctp::*;
 
 fn main() {
-//	match SctpListener::bind("0.0.0.0:3868") {
-	match SctpListener::bindx(&["10.0.2.15:3868", "127.0.0.1:3868"]) {
-		Ok(serv) => {		
+	match SctpListener::bind("0.0.0.0:3868") {
+//	match SctpListener::bindx(&["10.0.2.15:3868", "127.0.0.1:3868"]) {
+		Ok(serv) => {
 			println!("bound to {:?}", serv.local_addrs().unwrap());
 //			serv.set_timeout(5).unwrap();
 			match serv.accept() {

@@ -201,8 +201,9 @@ impl SctpEndpoint {
 	/// Create a one-to-many SCTP endpoint bound to a single address
 	pub fn bind<A: ToSocketAddrs>(address: A) -> Result<SctpEndpoint> {
 		let raw_addr = try!(SocketAddr::from_addr(&address));
-		let sock = try!(SctpSocket::new(raw_addr.family(), SOCK_STREAM));
+		let sock = try!(SctpSocket::new(raw_addr.family(), SOCK_SEQPACKET));
 		try!(sock.bind(raw_addr));
+		try!(sock.listen(-1));
 		return Ok(SctpEndpoint(sock));
 	}
 
@@ -338,6 +339,7 @@ impl SctpListener {
 		let raw_addr = try!(SocketAddr::from_addr(&address));
 		let sock = try!(SctpSocket::new(raw_addr.family(), SOCK_STREAM));
 		try!(sock.bind(raw_addr));
+		try!(sock.listen(-1));
 		return Ok(SctpListener(sock));
 	}
 
