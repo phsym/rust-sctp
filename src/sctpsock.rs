@@ -358,7 +358,7 @@ impl SctpSocket {
 
 	/// Send data in Sctp style, to the provided address (may be `None` if the socket is connected), on the stream `stream`, with the TTL `ttl`.
 	/// On success, returns the quantity on bytes sent
-	pub fn sendmsg<A: ToSocketAddrs>(&self, msg: &[u8], address: Option<A>, ppid: u64, stream: u16, ttl: libc::c_ulong) -> Result<usize> {
+	pub fn sendmsg<A: ToSocketAddrs>(&self, msg: &[u8], address: Option<A>, ppid: u32, stream: u16, ttl: libc::c_ulong) -> Result<usize> {
 		let len = msg.len() as libc::size_t;
 		let (raw_addr, addr_len) = match address {
 			Some(a) => {
@@ -367,8 +367,9 @@ impl SctpSocket {
 			},
 			None => (std::ptr::null_mut(), 0)
 		};
+    let ppid = ppid.to_be();
 		unsafe {
-			return match sctp_sys::sctp_sendmsg(self.0, msg.as_ptr() as *const libc::c_void, len, raw_addr, addr_len, ppid, 0, stream, ttl, 0) {
+			return match sctp_sys::sctp_sendmsg(self.0, msg.as_ptr() as *const libc::c_void, len, raw_addr, addr_len, ppid as libc::c_ulong, 0, stream, ttl, 0) {
 				res if res > 0 => Ok(res as usize),
 				_ => Err(Error::last_os_error())
 			};

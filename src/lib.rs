@@ -84,7 +84,7 @@ impl SctpStream {
 
 	/// Send bytes on the specified SCTP stream. On success, returns the
 	/// quantity of bytes read
-	pub fn sendmsg(&self, msg: &[u8], ppid: u64, stream: u16) -> Result<usize> {
+	pub fn sendmsg(&self, msg: &[u8], ppid: u32, stream: u16) -> Result<usize> {
 		return self.0.sendmsg::<SocketAddr>(msg, None, ppid, stream, 0);
 	}
 
@@ -233,7 +233,7 @@ impl SctpEndpoint {
 
 	/// Send data in Sctp style, to the provided address on the stream `stream`.
 	/// On success, returns the quantity on bytes sent
-	pub fn send_to<A: ToSocketAddrs>(&self, msg: &mut [u8], address: A, ppid: u64, stream: u16) -> Result<usize> {
+	pub fn send_to<A: ToSocketAddrs>(&self, msg: &mut [u8], address: A, ppid: u32, stream: u16) -> Result<usize> {
 		return self.0.sendmsg(msg, Some(address), ppid, stream, 0);
 	}
 
