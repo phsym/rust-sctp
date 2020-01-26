@@ -60,9 +60,9 @@ impl SctpStream {
 
 	/// Create a new stream by connecting it to a remote endpoint
 	pub fn connect<A: ToSocketAddrs>(address: A) -> Result<SctpStream> {
-		let raw_addr = try!(SocketAddr::from_addr(&address));
-		let sock = try!(SctpSocket::new(raw_addr.family(), SOCK_STREAM));
-		try!(sock.connect(raw_addr));
+		let raw_addr = SocketAddr::from_addr(&address)?;
+		let sock = SctpSocket::new(raw_addr.family(), SOCK_STREAM)?;
+		sock.connect(raw_addr)?;
 		return Ok(SctpStream(sock));
 	}
 
@@ -72,13 +72,13 @@ impl SctpStream {
 		let mut vec = Vec::with_capacity(addresses.len());
 		let mut family = AF_INET;
 		for address in addresses {
-			let a = try!(SocketAddr::from_addr(address));
+			let a = SocketAddr::from_addr(address)?;
 			if a.family() == AF_INET6 { family = AF_INET6; }
 			vec.push(a);
 		}
 
-		let sock = try!(SctpSocket::new(family, SOCK_STREAM));
-		try!(sock.connectx(&vec));
+		let sock = SctpSocket::new(family, SOCK_STREAM)?;
+		sock.connectx(&vec)?;
 		return Ok(SctpStream(sock));
 	}
 
@@ -91,7 +91,7 @@ impl SctpStream {
 	/// Read bytes. On success, return a tuple with the quantity of
 	/// bytes received and the stream they were recived on
 	pub fn recvmsg(&self, msg: &mut [u8]) -> Result<(usize, u16)> {
-		let (size, stream, _) = try!(self.0.recvmsg(msg));
+		let (size, stream, _) = self.0.recvmsg(msg)?;
 		return Ok((size, stream));
 	}
 
@@ -118,7 +118,7 @@ impl SctpStream {
 
 	/// Verify if SCTP_NODELAY option is activated for this socket
 	pub fn has_nodelay(&self) -> Result<bool> {
-		let val: libc::c_int = try!(self.0.sctp_opt_info(sctp_sys::SCTP_NODELAY, 0));
+		let val: libc::c_int = self.0.sctp_opt_info(sctp_sys::SCTP_NODELAY, 0)?;
 		return Ok(val == 1);
 	}
 
@@ -129,8 +129,8 @@ impl SctpStream {
 	}
 
 	/// Get the socket buffer size for the direction specified by `dir`
-	pub fn get_buffer_size(&self, dir: SoDirection) -> Result<(usize)> {
-		let val: u32 = try!(self.0.getsockopt(SOL_SOCKET, dir.buffer_opt()));
+	pub fn get_buffer_size(&self, dir: SoDirection) -> Result<usize> {
+		let val: u32 = self.0.getsockopt(SOL_SOCKET, dir.buffer_opt())?;
 		return Ok(val as usize);
 	}
 
@@ -144,7 +144,7 @@ impl SctpStream {
 	/// Try to clone the SctpStream. On success, returns a new stream
 	/// wrapping a new socket handler
 	pub fn try_clone(&self) -> Result<SctpStream> {
-		return Ok(SctpStream(try!(self.0.try_clone())));
+		return Ok(SctpStream(self.0.try_clone()?));
 	}
 }
 
@@ -200,10 +200,10 @@ impl SctpEndpoint {
 
 	/// Create a one-to-many SCTP endpoint bound to a single address
 	pub fn bind<A: ToSocketAddrs>(address: A) -> Result<SctpEndpoint> {
-		let raw_addr = try!(SocketAddr::from_addr(&address));
-		let sock = try!(SctpSocket::new(raw_addr.family(), SOCK_SEQPACKET));
-		try!(sock.bind(raw_addr));
-		try!(sock.listen(-1));
+		let raw_addr = SocketAddr::from_addr(&address)?;
+		let sock = SctpSocket::new(raw_addr.family(), SOCK_SEQPACKET)?;
+		sock.bind(raw_addr)?;
+		sock.listen(-1)?;
 		return Ok(SctpEndpoint(sock));
 	}
 
@@ -213,14 +213,14 @@ impl SctpEndpoint {
 		let mut vec = Vec::with_capacity(addresses.len());
 		let mut family = AF_INET;
 		for address in addresses {
-			let a = try!(SocketAddr::from_addr(address));
+			let a = SocketAddr::from_addr(address)?;
 			if a.family() == AF_INET6 { family = AF_INET6; }
 			vec.push(a);
 		}
 
-		let sock = try!(SctpSocket::new(family, SOCK_SEQPACKET));
-		try!(sock.bindx(&vec, BindOp::AddAddr));
-		try!(sock.listen(-1));
+		let sock = SctpSocket::new(family, SOCK_SEQPACKET)?;
+		sock.bindx(&vec, BindOp::AddAddr)?;
+		sock.listen(-1)?;
 		return Ok(SctpEndpoint(sock));
 	}
 
@@ -255,7 +255,7 @@ impl SctpEndpoint {
 
 	/// Verify if SCTP_NODELAY option is activated for this socket
 	pub fn has_nodelay(&self) -> Result<bool> {
-		let val: libc::c_int = try!(self.0.sctp_opt_info(sctp_sys::SCTP_NODELAY, 0));
+		let val: libc::c_int = self.0.sctp_opt_info(sctp_sys::SCTP_NODELAY, 0)?;
 		return Ok(val == 1);
 	}
 
@@ -266,8 +266,8 @@ impl SctpEndpoint {
 	}
 
 	/// Get the socket buffer size for the direction specified by `dir`
-	pub fn get_buffer_size(&self, dir: SoDirection) -> Result<(usize)> {
-		let val: u32 = try!(self.0.getsockopt(SOL_SOCKET, dir.buffer_opt()));
+	pub fn get_buffer_size(&self, dir: SoDirection) -> Result<usize> {
+		let val: u32 = self.0.getsockopt(SOL_SOCKET, dir.buffer_opt())?;
 		return Ok(val as usize);
 	}
 
@@ -280,7 +280,7 @@ impl SctpEndpoint {
 
 	/// Try to clone this socket
 	pub fn try_clone(&self) -> Result<SctpEndpoint> {
-		return Ok(SctpEndpoint(try!(self.0.try_clone())));
+		return Ok(SctpEndpoint(self.0.try_clone()?));
 	}
 }
 
@@ -336,10 +336,10 @@ impl SctpListener {
 
 	/// Create a listener bound to a single address
 	pub fn bind<A: ToSocketAddrs>(address: A) -> Result<SctpListener> {
-		let raw_addr = try!(SocketAddr::from_addr(&address));
-		let sock = try!(SctpSocket::new(raw_addr.family(), SOCK_STREAM));
-		try!(sock.bind(raw_addr));
-		try!(sock.listen(-1));
+		let raw_addr = SocketAddr::from_addr(&address)?;
+		let sock = SctpSocket::new(raw_addr.family(), SOCK_STREAM)?;
+		sock.bind(raw_addr)?;
+		sock.listen(-1)?;
 		return Ok(SctpListener(sock));
 	}
 
@@ -349,20 +349,20 @@ impl SctpListener {
 		let mut vec = Vec::with_capacity(addresses.len());
 		let mut family = AF_INET;
 		for address in addresses {
-			let a = try!(SocketAddr::from_addr(address));
+			let a = SocketAddr::from_addr(address)?;
 			if a.family() == AF_INET6 { family = AF_INET6; }
 			vec.push(a);
 		}
 
-		let sock = try!(SctpSocket::new(family, SOCK_STREAM));
-		try!(sock.bindx(&vec, BindOp::AddAddr));
-		try!(sock.listen(-1));
+		let sock = SctpSocket::new(family, SOCK_STREAM)?;
+		sock.bindx(&vec, BindOp::AddAddr)?;
+		sock.listen(-1)?;
 		return Ok(SctpListener(sock));
 	}
 
 	/// Accept a new connection
 	pub fn accept(&self) -> Result<(SctpStream, SocketAddr)> {
-		let (sock, addr) = try!(self.0.accept());
+		let (sock, addr) = self.0.accept()?;
 		return Ok((SctpStream(sock), addr));
 	}
 
@@ -385,7 +385,7 @@ impl SctpListener {
 
 	/// Try to clone this listener
 	pub fn try_clone(&self) -> Result<SctpListener> {
-		return Ok(SctpListener(try!(self.0.try_clone())));
+		return Ok(SctpListener(self.0.try_clone()?));
 	}
 }
 

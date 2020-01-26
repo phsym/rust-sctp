@@ -167,7 +167,7 @@ impl RawSocketAddr for SocketAddr {
 	}
 
 	fn from_addr<A: ToSocketAddrs>(address: A) -> Result<SocketAddr> {
-		return try!(address.to_socket_addrs().or(Err(Error::new(ErrorKind::InvalidInput, "Address is not valid"))))
+		return address.to_socket_addrs().or(Err(Error::new(ErrorKind::InvalidInput, "Address is not valid")))?
 								.next().ok_or(Error::new(ErrorKind::InvalidInput, "Address is not valid"));
 	}
 }
@@ -180,13 +180,13 @@ impl SctpSocket {
 	/// Create a new SCTP socket
 	pub fn new(family: libc::c_int, sock_type: libc::c_int) -> Result<SctpSocket> {
 		unsafe {
-			return Ok(SctpSocket(try!(check_socket(socket(family, sock_type, sctp_sys::IPPROTO_SCTP)))));
+			return Ok(SctpSocket(check_socket(socket(family, sock_type, sctp_sys::IPPROTO_SCTP))?));
 		}
 	}
 
 	/// Connect the socket to `address`
 	pub fn connect<A: ToSocketAddrs>(&self, address: A) -> Result<()> {
-		let raw_addr = try!(SocketAddr::from_addr(&address));
+	  let raw_addr = SocketAddr::from_addr(&address)?;
 		unsafe {
 			return match connect(self.0, raw_addr.as_ptr(), raw_addr.addr_len()) {
 				0 => Ok(()),
@@ -205,7 +205,7 @@ impl SctpSocket {
 			}
 			let mut offset = 0isize;
 			for address in addresses {
-				let raw = try!(SocketAddr::from_addr(address));
+				let raw = SocketAddr::from_addr(address)?;
 				let len = raw.addr_len();
 				std::ptr::copy_nonoverlapping(raw.as_ptr() as *mut u8, buf.offset(offset), len as usize);
 				offset += len as isize;
@@ -223,7 +223,7 @@ impl SctpSocket {
 
 	/// Bind the socket to a single address
 	pub fn bind<A: ToSocketAddrs>(&self, address: A) -> Result<()> {
-		let raw_addr = try!(SocketAddr::from_addr(&address));
+		let raw_addr = SocketAddr::from_addr(&address)?;
 		unsafe {
 			return match bind(self.0, raw_addr.as_ptr(), raw_addr.addr_len()) {
 				0 => Ok(()),
@@ -242,7 +242,7 @@ impl SctpSocket {
 			}
 			let mut offset = 0isize;
 			for address in addresses {
-				let raw = try!(SocketAddr::from_addr(address));
+				let raw = SocketAddr::from_addr(address)?;
 				let len = raw.addr_len();
 				std::ptr::copy_nonoverlapping(raw.as_ptr() as *mut u8, buf.offset(offset), len as usize);
 				offset += len as isize;
@@ -273,8 +273,8 @@ impl SctpSocket {
 		let mut len: socklen_t = size_of::<sockaddr_in6>() as socklen_t;
 		unsafe {
 			let addr_ptr: *mut sockaddr = transmute(&mut addr);
-			let sock = try!(check_socket(accept(self.0, addr_ptr, &mut len)));
-			let addr = try!(SocketAddr::from_raw_ptr(addr_ptr, len));
+			let sock = check_socket(accept(self.0, addr_ptr, &mut len))?;
+			let addr = SocketAddr::from_raw_ptr(addr_ptr, len)?;
 			return Ok((SctpSocket(sock), addr));
 		}
 	}
@@ -298,7 +298,7 @@ impl SctpSocket {
 						return Err(Error::new(ErrorKind::Other, format!("Unsupported address family : {}", f)));
 					}
 				} as socklen_t;
-				vec.push(try!(SocketAddr::from_raw_ptr(sockaddr, len)));
+				vec.push(SocketAddr::from_raw_ptr(sockaddr, len)?);
 				offset += len as isize;
 			}
 			what.free(addrs as *mut sockaddr);
@@ -350,7 +350,7 @@ impl SctpSocket {
 			let addr_ptr: *mut sockaddr = transmute(&mut addr);
 			let mut info: sctp_sys::sctp_sndrcvinfo = std::mem::zeroed();
 			return match sctp_sys::sctp_recvmsg(self.0, msg.as_mut_ptr() as *mut libc::c_void, len, addr_ptr, &mut addr_len, &mut info, &mut flags) {
-				res if res > 0 => Ok((res as usize, info.sinfo_stream, try!(SocketAddr::from_raw_ptr(addr_ptr, addr_len)))),
+				res if res > 0 => Ok((res as usize, info.sinfo_stream, SocketAddr::from_raw_ptr(addr_ptr, addr_len)?)),
 				_ => Err(Error::last_os_error())
 			};
 		}
@@ -362,7 +362,7 @@ impl SctpSocket {
 		let len = msg.len() as libc::size_t;
 		let (raw_addr, addr_len) = match address {
 			Some(a) => {
-				let mut addr = try!(SocketAddr::from_addr(a));
+				let mut addr = SocketAddr::from_addr(a)?;
 				(addr.as_mut_ptr(), addr.addr_len())
 			},
 			None => (std::ptr::null_mut(), 0)
@@ -425,7 +425,7 @@ impl SctpSocket {
 	/// Try to clone this socket
 	pub fn try_clone(&self) -> Result<SctpSocket> {
 		unsafe {
-			let new_sock = try!(check_socket(libc::dup(self.0 as i32) as SOCKET));
+			let new_sock = check_socket(libc::dup(self.0 as i32) as SOCKET)?;
 			return Ok(SctpSocket(new_sock));
 		}
 	}
