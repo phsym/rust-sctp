@@ -19,6 +19,10 @@ use std::net::{ToSocketAddrs, SocketAddr, Shutdown};
 
 #[cfg(target_os="linux")]
 use std::os::unix::io::{AsRawFd, RawFd, FromRawFd};
+
+#[cfg(target_os="linux")]
+pub mod mio_unix;
+
 #[cfg(target_os="windows")]
 use std::os::windows::io::{AsRawHandle, RawHandle, FromRawHandle};
 
