@@ -12,3 +12,4 @@ SCTP networking library for Rust
 
 `rust-sctp` relies on the [sctp-sys](https://crates.io/crates/sctp-sys) crate. Please have a look at [sctp-sys: How to build](https://github.com/phsym/sctp-sys#how-to-build).
 
+> **WARNING:** Windows support is currently broken and unmaintained as SctpDrv is not working on modern windows platforms
