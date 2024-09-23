@@ -1,0 +1,41 @@
+name: Test
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dtolnay/rust-toolchain@1.81
+      with:
+        components: clippy,rustfmt
+    - run: sudo apt-get install libsctp1 libsctp-dev lksctp-tools
+
+    - name: Build examples
+      run: cargo build --verbose --examples --all
+    - name: Run tests
+      run: cargo test --verbose --all
+  
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dtolnay/rust-toolchain@1.81
+      with:
+        components: clippy,rustfmt
+    - name: Check formatting
+      run: cargo fmt --check --all
+    - name: Run Cargo check
+      run: cargo check --all --all-features --all-targets
+    - name: Run Clippy linter
+      run: cargo clippy --all --all-features --all-targets -- -D clippy::all
+
+
