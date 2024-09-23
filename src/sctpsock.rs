@@ -1,7 +1,3 @@
-use libc;
-use sctp_sys;
-use std;
-
 use std::io::{Error, ErrorKind, Read, Result, Write};
 use std::mem::{size_of, MaybeUninit};
 use std::net::{
@@ -50,7 +46,6 @@ mod win {
 
 #[cfg(target_os = "linux")]
 mod linux {
-    use libc;
     use std::io::{Error, Result};
 
     pub use libc::{
@@ -58,6 +53,7 @@ mod linux {
         SHUT_RD, SHUT_RDWR, SHUT_WR,
     };
 
+    #[allow(clippy::upper_case_acronyms)]
     pub type SOCKET = libc::c_int;
     pub type RWlen = libc::size_t;
 
@@ -69,7 +65,7 @@ mod linux {
         if sock < 0 {
             return Err(Error::last_os_error());
         }
-        return Ok(sock);
+        Ok(sock)
     }
 }
 
@@ -89,10 +85,10 @@ pub enum BindOp {
 
 impl BindOp {
     fn flag(&self) -> libc::c_int {
-        return match *self {
+        match *self {
             BindOp::AddAddr => sctp_sys::SCTP_BINDX_ADD_ADDR,
             BindOp::RemAddr => sctp_sys::SCTP_BINDX_REM_ADDR,
-        };
+        }
     }
 }
 
@@ -108,17 +104,17 @@ impl SctpAddrType {
         id: sctp_sys::sctp_assoc_t,
         ptr: *mut *mut sockaddr,
     ) -> libc::c_int {
-        return match *self {
+        match *self {
             SctpAddrType::Local => sctp_sys::sctp_getladdrs(sock, id, ptr),
             SctpAddrType::Peer => sctp_sys::sctp_getpaddrs(sock, id, ptr),
-        };
+        }
     }
 
     unsafe fn free(&self, ptr: *mut sockaddr) {
-        return match *self {
+        match *self {
             SctpAddrType::Local => sctp_sys::sctp_freeladdrs(ptr),
             SctpAddrType::Peer => sctp_sys::sctp_freepaddrs(ptr),
-        };
+        }
     }
 }
 
@@ -136,10 +132,10 @@ pub trait RawSocketAddr: Sized {
 
 impl RawSocketAddr for SocketAddr {
     fn family(&self) -> i32 {
-        return match *self {
+        match *self {
             SocketAddr::V4(..) => AF_INET,
             SocketAddr::V6(..) => AF_INET6,
-        };
+        }
     }
 
     unsafe fn from_raw_ptr(addr: *const sockaddr, len: socklen_t) -> Result<SocketAddr> {
@@ -154,7 +150,7 @@ impl RawSocketAddr for SocketAddr {
                 let in_addr = std::ptr::read(addr as *const sockaddr_in);
                 let ip_addr = Ipv4Addr::from(in_addr.sin_addr.s_addr.to_be());
                 let socket_addr_v4 = SocketAddrV4::new(ip_addr, u16::from_be(in_addr.sin_port));
-                return Ok(SocketAddr::V4(socket_addr_v4));
+                Ok(SocketAddr::V4(socket_addr_v4))
             }
             AF_INET6 if len >= size_of::<sockaddr_in6>() as socklen_t => {
                 let in6_addr = std::ptr::read(addr as *const sockaddr_in6);
@@ -165,7 +161,7 @@ impl RawSocketAddr for SocketAddr {
                     in6_addr.sin6_flowinfo,
                     in6_addr.sin6_scope_id,
                 );
-                return Ok(SocketAddr::V6(socket_addr_v6));
+                Ok(SocketAddr::V6(socket_addr_v6))
             }
             _ => Err(Error::new(
                 ErrorKind::InvalidInput,
@@ -175,10 +171,10 @@ impl RawSocketAddr for SocketAddr {
     }
 
     fn from_addr<A: ToSocketAddrs>(address: A) -> Result<SocketAddr> {
-        return address
+        address
             .to_socket_addrs()?
             .next()
-            .ok_or_else(|| Error::new(ErrorKind::InvalidInput, "Address is not valid"));
+            .ok_or_else(|| Error::new(ErrorKind::InvalidInput, "Address is not valid"))
     }
 }
 
@@ -189,11 +185,11 @@ impl SctpSocket {
     /// Create a new SCTP socket
     pub fn new(family: libc::c_int, sock_type: libc::c_int) -> Result<SctpSocket> {
         unsafe {
-            return Ok(SctpSocket(check_socket(socket(
+            Ok(SctpSocket(check_socket(socket(
                 family,
                 sock_type,
                 sctp_sys::IPPROTO_SCTP,
-            ))?));
+            ))?))
         }
     }
 
@@ -209,7 +205,7 @@ impl SctpSocket {
 
     /// Connect the socket to multiple addresses
     pub fn connectx<A: ToSocketAddrs>(&self, addresses: &[A]) -> Result<sctp_sys::sctp_assoc_t> {
-        if addresses.len() == 0 {
+        if addresses.is_empty() {
             return Err(Error::new(ErrorKind::InvalidInput, "No addresses given"));
         }
 
@@ -222,7 +218,7 @@ impl SctpSocket {
         }
         let mut offset = 0isize;
         for address in addresses {
-            let addrobj = SocketAddr::from_addr(&address)?;
+            let addrobj = SocketAddr::from_addr(address)?;
             let (raw_addr, raw_addr_length) = socket_addr(&addrobj);
             unsafe {
                 std::ptr::copy_nonoverlapping(
@@ -263,7 +259,7 @@ impl SctpSocket {
 
     /// Bind the socket on multiple addresses
     pub fn bindx<A: ToSocketAddrs>(&self, addresses: &[A], op: BindOp) -> Result<()> {
-        if addresses.len() == 0 {
+        if addresses.is_empty() {
             return Err(Error::new(ErrorKind::InvalidInput, "No addresses given"));
         }
 
@@ -275,7 +271,7 @@ impl SctpSocket {
         }
         let mut offset = 0isize;
         for address in addresses {
-            let addrobj = SocketAddr::from_addr(&address)?;
+            let addrobj = SocketAddr::from_addr(address)?;
             let (raw_addr, raw_addr_length) = socket_addr(&addrobj);
             unsafe {
                 std::ptr::copy_nonoverlapping(
@@ -320,7 +316,7 @@ impl SctpSocket {
                 addr_storage.as_mut_ptr() as *mut _,
                 &mut addr_storage_length
             ))
-            .map(|socket| SctpSocket(socket))
+            .map(SctpSocket)
         }?;
 
         unsafe { to_socket_addr(addr_storage.as_ptr()) }.map(|addr| (stream, addr))
@@ -365,18 +361,18 @@ impl SctpSocket {
             // free allocated addresses
             what.free(addrs);
 
-            return Ok(vec);
+            Ok(vec)
         }
     }
 
     /// List socket's local addresses
     pub fn local_addrs(&self, id: sctp_sys::sctp_assoc_t) -> Result<Vec<SocketAddr>> {
-        return self.addrs(id, SctpAddrType::Local);
+        self.addrs(id, SctpAddrType::Local)
     }
 
     /// Get peer addresses for a connected socket or a given association
     pub fn peer_addrs(&self, id: sctp_sys::sctp_assoc_t) -> Result<Vec<SocketAddr>> {
-        return self.addrs(id, SctpAddrType::Peer);
+        self.addrs(id, SctpAddrType::Peer)
     }
 
     /// Receive data in TCP style. Only works for a connected one to one socket
@@ -535,7 +531,7 @@ impl SctpSocket {
 
     /// Try to clone this socket
     pub fn try_clone(&self) -> Result<SctpSocket> {
-        match syscall!(dup(self.0 as i32)) {
+        match syscall!(dup(self.0 as _)) {
             Err(err) => Err(err),
             Ok(new_sock) => Ok(SctpSocket(new_sock as SOCKET)),
         }
@@ -544,45 +540,45 @@ impl SctpSocket {
 
 impl Read for SctpSocket {
     fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
-        return self.recv(buf);
+        self.recv(buf)
     }
 }
 
 impl Write for SctpSocket {
     fn write(&mut self, buf: &[u8]) -> Result<usize> {
-        return self.send(buf);
+        self.send(buf)
     }
 
     fn flush(&mut self) -> Result<()> {
-        return Ok(());
+        Ok(())
     }
 }
 
 #[cfg(target_os = "windows")]
 impl AsRawHandle for SctpSocket {
     fn as_raw_handle(&self) -> RawHandle {
-        return self.0 as RawHandle;
+        self.0 as RawHandle
     }
 }
 
 #[cfg(target_os = "windows")]
 impl FromRawHandle for SctpSocket {
     unsafe fn from_raw_handle(hdl: RawHandle) -> SctpSocket {
-        return SctpSocket(hdl as SOCKET);
+        SctpSocket(hdl as SOCKET)
     }
 }
 
 #[cfg(target_os = "linux")]
 impl AsRawFd for SctpSocket {
     fn as_raw_fd(&self) -> RawFd {
-        return self.0;
+        self.0
     }
 }
 
 #[cfg(target_os = "linux")]
 impl FromRawFd for SctpSocket {
     unsafe fn from_raw_fd(fd: RawFd) -> SctpSocket {
-        return SctpSocket(fd);
+        SctpSocket(fd)
     }
 }
 

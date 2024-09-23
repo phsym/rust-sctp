@@ -32,7 +32,7 @@ fn main() {
             peer.sendmsg("foo bar again\n".as_bytes(), 6).unwrap();
             let mut data = [0u8; 1024];
             // Read data using the io::Read trait
-            peer.read(&mut data).unwrap();
+            peer.read_exact(&mut data).unwrap();
             // Read data using SCTP advanced feature, and retrieve the stream id
             // on which data were received
             let (size, stream) = peer.recvmsg(&mut data).unwrap();
