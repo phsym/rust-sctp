@@ -9,7 +9,7 @@ readme = "README.md"
 authors = [ "Pierre-Henri Symoneaux" ]
 keywords = ["transport", "network", "sctp", "libsctp", "socket"]
 license = "MIT"
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 # sctp-sys = { git = "https://github.com/phsym/sctp-sys" }
